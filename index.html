@@ -5,27 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Линии сюжета</title>
 
-  <!-- Подключение CSS -->
   <link rel="stylesheet" href="style.css">
-</head>
 
+  <!-- Firebase compat SDK (подходит для GitHub Pages) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
 <body>
   <header class="app-header">
     <h1>Линии сюжета</h1>
-    <p class="subtitle">Эстафетное креативное письмо в нескольких параллельных линиях</p>
+    <p class="subtitle">Эстафетное креативное письмо в параллельных линиях (онлайн)</p>
   </header>
 
   <main class="container">
 
+    <!-- Блок: старт -->
     <section class="card">
       <h2>Продолжи историю</h2>
-      <p>Нажми кнопку ниже — тебе выпадет случайная линия сюжета. Прочитай последние фрагменты и добавь свой.</p>
+      <p>
+        Нажми кнопку ниже — тебе случайно выпадет линия сюжета.
+        Прочитай последние фрагменты и добавь свой.
+        Несколько людей могут писать одновременно по одной ссылке.
+      </p>
       <button id="get-line-btn" class="btn primary">Получить линию</button>
     </section>
 
+    <!-- Блок: текущая линия -->
     <section id="line-card" class="card">
       <h2 id="line-title">Линия не выбрана</h2>
-      <p id="line-description" class="desc">Нажми кнопку выше, чтобы выбрать линию.</p>
+      <p id="line-description" class="desc">Нажми «Получить линию», чтобы начать.</p>
+
+      <p class="small muted" id="online-indicator">
+        Подключаемся к онлайн-хранилищу…
+      </p>
 
       <button id="change-line-btn" class="btn secondary" disabled>Другая линия</button>
 
@@ -41,14 +53,57 @@
       <p id="status-message" class="status"></p>
     </section>
 
+    <!-- Блок: обзор + добавление своей линии + выгрузка -->
     <section class="card">
-      <h2>Обзор линий</h2>
+      <div class="card-header-row">
+        <div>
+          <h2>Обзор линий</h2>
+          <p class="desc">Каждая линия развивается отдельно. Можно продолжать любую из них.</p>
+        </div>
+        <button id="download-btn" class="btn secondary small-btn">
+          Скачать все истории (.txt)
+        </button>
+      </div>
+
       <div id="overview-grid" class="grid"></div>
+
+      <hr class="divider">
+
+      <h3>Создать свою линию</h3>
+      <p class="small muted">
+        Выбери персонажа из списка или придумай своего, добавь краткое описание и создай новую ветку.
+      </p>
+
+      <div class="new-line-form">
+        <div class="field">
+          <label for="persona-select">Персонаж из списка</label>
+          <select id="persona-select">
+            <option value="Путешественник">Путешественник</option>
+            <option value="Наблюдатель">Наблюдатель</option>
+            <option value="Шутник">Шутник</option>
+            <option value="Учёный">Учёный</option>
+            <option value="Скептик">Скептик</option>
+            <option value="Мечтатель">Мечтатель</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="persona-custom">Или свой персонаж</label>
+          <input id="persona-custom" type="text" placeholder="Например: Хранитель истории">
+        </div>
+
+        <div class="field">
+          <label for="line-desc-input">Краткое описание линии</label>
+          <input id="line-desc-input" type="text" placeholder="О чём эта линия?">
+        </div>
+
+        <button id="add-line-btn" class="btn primary">Создать линию</button>
+        <p id="new-line-status" class="status"></p>
+      </div>
     </section>
 
   </main>
 
-  <!-- Подключение JS -->
   <script src="script.js"></script>
 </body>
 </html>
