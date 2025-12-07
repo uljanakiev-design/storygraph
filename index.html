@@ -1,87 +1,87 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="sk">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Линии сюжета</title>
+  <title>Líniové príbehy</title>
 
   <link rel="stylesheet" href="style.css">
 
-  <!-- Firebase compat SDK (подходит для GitHub Pages) -->
+  <!-- Firebase compat SDK (vhodné pre GitHub Pages) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <header class="app-header">
-    <h1>Линии сюжета</h1>
-    <p class="subtitle">Эстафетное креативное письмо в параллельных линиях</p>
+    <h1>Líniové príbehy</h1>
+    <p class="subtitle">Štafetové kreatívne písanie v paralelných dejových líniách</p>
   </header>
 
   <main class="container">
 
-    <!-- Блок: старт -->
+    <!-- Blok: štart -->
     <section class="card">
-      <h2>Продолжи историю</h2>
+      <h2>Pokračuj v príbehu</h2>
       <p>
-        Нажми кнопку ниже — тебе случайно выпадет линия сюжета.
-        Прочитай последние фрагменты и добавь свой.
+        Klikni na tlačidlo nižšie – náhodne sa ti pridelí dejová línia.
+        Prečítaj si posledné úryvky a dopíš vlastné pokračovanie.
       </p>
-      <button id="get-line-btn" class="btn primary">Получить линию</button>
+      <button id="get-line-btn" class="btn primary">Získať líniu</button>
     </section>
 
-    <!-- Блок: текущая линия -->
+    <!-- Blok: aktuálna línia -->
     <section id="line-card" class="card">
       <div class="line-header-row">
         <div>
-          <h2 id="line-title">Линия не выбрана</h2>
+          <h2 id="line-title">Línia nie je vybraná</h2>
           <p id="line-description" class="desc">
-            Нажми «Получить линию», чтобы начать.
+            Klikni na „Získať líniu“, aby si začal.
           </p>
         </div>
 
         <button id="change-line-btn" class="btn secondary" disabled>
-          Другая линия
+          Iná línia
         </button>
       </div>
 
       <div class="mode-row">
         <div>
           <p id="online-indicator" class="small muted">
-            Режим: локальный (данные только на этом устройстве)
+            Režim: lokálny (údaje sú len v tomto zariadení)
           </p>
         </div>
         <label class="toggle">
           <input type="checkbox" id="online-toggle">
           <span class="toggle-slider"></span>
-          <span class="toggle-label-text small">Онлайн-синхронизация</span>
+          <span class="toggle-label-text small">Online synchronizácia</span>
         </label>
       </div>
 
-      <h3>Последние фрагменты</h3>
+      <h3>Posledné úryvky</h3>
       <div id="entries-list" class="entries empty">
-        <p>Пока нет данных — выбери линию.</p>
+        <p>Zatiaľ žiadne údaje – vyber si líniu.</p>
       </div>
 
-      <h3>Твоё продолжение</h3>
-      <textarea id="entry-input" placeholder="Напиши продолжение..." rows="3"></textarea>
-      <button id="add-entry-btn" class="btn primary" disabled>Добавить</button>
+      <h3>Tvoje pokračovanie</h3>
+      <textarea id="entry-input" placeholder="Napíš pokračovanie..." rows="3"></textarea>
+      <button id="add-entry-btn" class="btn primary" disabled>Pridať</button>
 
       <p id="status-message" class="status"></p>
     </section>
 
-    <!-- Блок: обзор + добавление своей линии + выгрузка и сброс -->
+    <!-- Blok: prehľad + nová línia + export + reset -->
     <section class="card">
       <div class="card-header-row">
         <div>
-          <h2>Обзор линий</h2>
-          <p class="desc">Каждая линия развивается отдельно. Можно продолжать любую из них.</p>
+          <h2>Prehľad línií</h2>
+          <p class="desc">Každá línia sa vyvíja samostatne. Môžeš pokračovať v ktorejkoľvek z nich.</p>
         </div>
         <div class="card-header-actions">
           <button id="download-btn" class="btn secondary small-btn">
-            Скачать всё (.txt)
+            Stiahnuť všetko (.txt)
           </button>
           <button id="reset-btn" class="btn secondary small-btn danger-btn">
-            Начать сначала
+            Začať odznova
           </button>
         </div>
       </div>
@@ -90,35 +90,35 @@
 
       <hr class="divider">
 
-      <h3>Создать свою линию</h3>
+      <h3>Vytvoriť vlastnú líniu</h3>
       <p class="small muted">
-        Выбери персонажа из списка или придумай своего, добавь описание и создай новую ветку.
+        Vyber postavu zo zoznamu alebo vytvor vlastnú, pridaj krátky opis a vytvor novú dejovú vetvu.
       </p>
 
       <div class="new-line-form">
         <div class="field">
-          <label for="persona-select">Персонаж из списка</label>
+          <label for="persona-select">Postava zo zoznamu</label>
           <select id="persona-select">
-            <option value="Путешественник">Путешественник</option>
-            <option value="Наблюдатель">Наблюдатель</option>
-            <option value="Шутник">Шутник</option>
-            <option value="Учёный">Учёный</option>
-            <option value="Скептик">Скептик</option>
-            <option value="Мечтатель">Мечтатель</option>
+            <option value="Cestovateľ">Cestovateľ</option>
+            <option value="Pozorovateľ">Pozorovateľ</option>
+            <option value="Vtipkár">Vtipkár</option>
+            <option value="Vedec">Vedec</option>
+            <option value="Skeptik">Skeptik</option>
+            <option value="Snílek">Snílek</option>
           </select>
         </div>
 
         <div class="field">
-          <label for="persona-custom">Или свой персонаж</label>
-          <input id="persona-custom" type="text" placeholder="Например: Хранитель истории">
+          <label for="persona-custom">Alebo vlastná postava</label>
+          <input id="persona-custom" type="text" placeholder="Napríklad: Strážca príbehu">
         </div>
 
         <div class="field">
-          <label for="line-desc-input">Краткое описание линии</label>
-          <input id="line-desc-input" type="text" placeholder="О чём эта линия?">
+          <label for="line-desc-input">Krátky opis línie</label>
+          <input id="line-desc-input" type="text" placeholder="O čom je táto línia?">
         </div>
 
-        <button id="add-line-btn" class="btn primary">Создать линию</button>
+        <button id="add-line-btn" class="btn primary">Vytvoriť líniu</button>
         <p id="new-line-status" class="status"></p>
       </div>
     </section>
