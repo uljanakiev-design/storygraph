@@ -14,7 +14,7 @@
 <body>
   <header class="app-header">
     <h1>Линии сюжета</h1>
-    <p class="subtitle">Эстафетное креативное письмо в параллельных линиях (онлайн)</p>
+    <p class="subtitle">Эстафетное креативное письмо в параллельных линиях</p>
   </header>
 
   <main class="container">
@@ -25,21 +25,37 @@
       <p>
         Нажми кнопку ниже — тебе случайно выпадет линия сюжета.
         Прочитай последние фрагменты и добавь свой.
-        Несколько людей могут писать одновременно по одной ссылке.
       </p>
       <button id="get-line-btn" class="btn primary">Получить линию</button>
     </section>
 
     <!-- Блок: текущая линия -->
     <section id="line-card" class="card">
-      <h2 id="line-title">Линия не выбрана</h2>
-      <p id="line-description" class="desc">Нажми «Получить линию», чтобы начать.</p>
+      <div class="line-header-row">
+        <div>
+          <h2 id="line-title">Линия не выбрана</h2>
+          <p id="line-description" class="desc">
+            Нажми «Получить линию», чтобы начать.
+          </p>
+        </div>
 
-      <p class="small muted" id="online-indicator">
-        Подключаемся к онлайн-хранилищу…
-      </p>
+        <button id="change-line-btn" class="btn secondary" disabled>
+          Другая линия
+        </button>
+      </div>
 
-      <button id="change-line-btn" class="btn secondary" disabled>Другая линия</button>
+      <div class="mode-row">
+        <div>
+          <p id="online-indicator" class="small muted">
+            Режим: локальный (данные только на этом устройстве)
+          </p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="online-toggle">
+          <span class="toggle-slider"></span>
+          <span class="toggle-label-text small">Онлайн-синхронизация</span>
+        </label>
+      </div>
 
       <h3>Последние фрагменты</h3>
       <div id="entries-list" class="entries empty">
@@ -53,16 +69,21 @@
       <p id="status-message" class="status"></p>
     </section>
 
-    <!-- Блок: обзор + добавление своей линии + выгрузка -->
+    <!-- Блок: обзор + добавление своей линии + выгрузка и сброс -->
     <section class="card">
       <div class="card-header-row">
         <div>
           <h2>Обзор линий</h2>
           <p class="desc">Каждая линия развивается отдельно. Можно продолжать любую из них.</p>
         </div>
-        <button id="download-btn" class="btn secondary small-btn">
-          Скачать все истории (.txt)
-        </button>
+        <div class="card-header-actions">
+          <button id="download-btn" class="btn secondary small-btn">
+            Скачать всё (.txt)
+          </button>
+          <button id="reset-btn" class="btn secondary small-btn danger-btn">
+            Начать сначала
+          </button>
+        </div>
       </div>
 
       <div id="overview-grid" class="grid"></div>
@@ -71,7 +92,7 @@
 
       <h3>Создать свою линию</h3>
       <p class="small muted">
-        Выбери персонажа из списка или придумай своего, добавь краткое описание и создай новую ветку.
+        Выбери персонажа из списка или придумай своего, добавь описание и создай новую ветку.
       </p>
 
       <div class="new-line-form">
