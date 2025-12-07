@@ -1,83 +1,54 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>Линии сюжета — креативное письмо</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Линии сюжета</title>
+
+  <!-- Подключение CSS -->
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <header class="app-header">
-    <div class="brand">
-      <div class="brand-mark"></div>
-      <span class="brand-name">Линии сюжета</span>
-    </div>
-    <p class="subtitle">Эстафетное креативное письмо в несколько линий</p>
+    <h1>Линии сюжета</h1>
+    <p class="subtitle">Эстафетное креативное письмо в нескольких параллельных линиях</p>
   </header>
 
-  <main class="app-main">
-    <section class="intro-card">
-      <h1>Продолжи историю</h1>
-      <p>
-        Нажми кнопку ниже — тебе случайно выпадет одна из линий сюжета.
-        Прочитай, что было написано до тебя, и допиши своё продолжение.
-      </p>
-      <button id="get-line-btn" class="primary-btn">
-        Получить линию сюжета
-      </button>
+  <main class="container">
+
+    <section class="card">
+      <h2>Продолжи историю</h2>
+      <p>Нажми кнопку ниже — тебе выпадет случайная линия сюжета. Прочитай последние фрагменты и добавь свой.</p>
+      <button id="get-line-btn" class="btn primary">Получить линию</button>
     </section>
 
-    <section class="line-card" id="line-card">
-      <div class="line-header">
-        <div>
-          <h2 id="line-title">Линия не выбрана</h2>
-          <p id="line-description" class="line-description">
-            Нажми «Получить линию сюжета», чтобы начать.
-          </p>
-        </div>
-        <button id="change-line-btn" class="ghost-btn" disabled>
-          Другая линия
-        </button>
+    <section id="line-card" class="card">
+      <h2 id="line-title">Линия не выбрана</h2>
+      <p id="line-description" class="desc">Нажми кнопку выше, чтобы выбрать линию.</p>
+
+      <button id="change-line-btn" class="btn secondary" disabled>Другая линия</button>
+
+      <h3>Последние фрагменты</h3>
+      <div id="entries-list" class="entries empty">
+        <p>Пока нет данных — выбери линию.</p>
       </div>
 
-      <div class="entries-block">
-        <h3>Последние фрагменты</h3>
-        <div id="entries-list" class="entries-list empty-state">
-          <p>Здесь появятся фрагменты, когда линия будет выбрана.</p>
-        </div>
-      </div>
+      <h3>Твоё продолжение</h3>
+      <textarea id="entry-input" placeholder="Напиши продолжение..." rows="3"></textarea>
+      <button id="add-entry-btn" class="btn primary" disabled>Добавить</button>
 
-      <div class="editor-block">
-        <h3>Твоё продолжение</h3>
-        <textarea
-          id="entry-input"
-          rows="4"
-          placeholder="Напиши здесь продолжение этой линии сюжета..."
-        ></textarea>
-        <div class="editor-footer">
-          <span id="status-message" class="status-message"></span>
-          <button id="add-entry-btn" class="primary-btn" disabled>
-            Добавить продолжение
-          </button>
-        </div>
-      </div>
+      <p id="status-message" class="status"></p>
     </section>
 
-    <section class="overview-section">
+    <section class="card">
       <h2>Обзор линий</h2>
-      <p class="overview-subtitle">
-        Каждая линия развивается отдельно. Можно продолжать любую из них.
-      </p>
-      <div class="overview-grid" id="overview-grid">
-        <!-- Карточки линий рендерятся из JS -->
-      </div>
+      <div id="overview-grid" class="grid"></div>
     </section>
+
   </main>
 
-  <footer class="app-footer">
-    <p>Проект для развития креативного письма. Данные сохраняются локально в браузере.</p>
-  </footer>
-
-  <script src="script.js" defer></script>
+  <!-- Подключение JS -->
+  <script src="script.js"></script>
 </body>
 </html>
