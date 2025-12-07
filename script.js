@@ -1,234 +1,138 @@
-// Простое хранилище в localStorage
-const STORAGE_KEY = "creativeStoryLines_v1";
+const STORAGE_KEY = "story_lines_v1";
 
-const defaultStoryLines = {
+const defaultLines = {
   A: {
     id: "A",
     name: "Линия A",
-    description:
-      "Персонаж А отправился утром в незнакомое место с важной для него целью.",
-    entries: [
-      "Персонаж А проснулся раньше обычного, собрал необходимые вещи и вышел из дома, хотя сам толком не понимал, куда именно приведёт его этот день."
-    ]
+    description: "Персонаж А отправился утром в незнакомое место.",
+    entries: ["Персонаж А вышел из дома раньше обычного, хотя не понимал, куда его приведёт день."]
   },
   B: {
     id: "B",
     name: "Линия B",
-    description:
-      "Персонаж B остаётся дома и занят чем-то очень обычным, но в этой обычности скрывается потенциал для неожиданностей.",
-    entries: [
-      "Персонаж B включил любимый экран, устроился поудобнее и решил, что сегодня наконец-то просто проведёт день дома, никуда не выходя."
-    ]
+    description: "Персонаж B остался дома и занимается привычным делом.",
+    entries: ["Персонаж B включил экран и устроился поудобнее — день обещал быть спокойным."]
   },
   C: {
     id: "C",
     name: "Линия C",
-    description:
-      "Персонаж C взаимодействует с природой: вода, лес, воздух, неожиданные явления.",
-    entries: [
-      "Персонаж C вошёл в воду осторожно, чувствуя, как прохладные волны обнимают ноги и будто приглашают зайти ещё глубже."
-    ]
+    description: "Персонаж C взаимодействует с природой.",
+    entries: ["Персонаж C осторожно вошёл в воду — она была прохладной и спокойной."]
   }
 };
 
 let storyLines = {};
 let currentLineId = null;
 
-// --- Работа с localStorage ---
+/* ---------- LocalStorage ---------- */
 
-function loadStoryLines() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // Простая защита: если структура странная, используем дефолт
-      if (parsed && typeof parsed === "object") {
-        storyLines = parsed;
-        return;
-      }
-    }
-  } catch (e) {
-    console.warn("Не удалось загрузить данные, используем значения по умолчанию.", e);
-  }
-  storyLines = defaultStoryLines;
+function load() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  storyLines = saved ? JSON.parse(saved) : defaultLines;
 }
 
-function saveStoryLines() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(storyLines));
-  } catch (e) {
-    console.warn("Не удалось сохранить данные.", e);
-  }
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(storyLines));
 }
 
-// --- DOM элементы ---
-
-const getLineBtn = document.getElementById("get-line-btn");
-const changeLineBtn = document.getElementById("change-line-btn");
-const addEntryBtn = document.getElementById("add-entry-btn");
-
-const lineTitleEl = document.getElementById("line-title");
-const lineDescriptionEl = document.getElementById("line-description");
-const entriesListEl = document.getElementById("entries-list");
-const entryInputEl = document.getElementById("entry-input");
-const statusMessageEl = document.getElementById("status-message");
-const overviewGridEl = document.getElementById("overview-grid");
-
-// --- Логика выбора и отображения линий ---
-
-function getRandomLineId() {
-  const ids = Object.keys(storyLines);
-  if (ids.length === 0) return null;
-  const randomIndex = Math.floor(Math.random() * ids.length);
-  return ids[randomIndex];
-}
-
-function setCurrentLine(id) {
-  currentLineId = id;
-  renderCurrentLine();
-}
+/* ---------- Rendering ---------- */
 
 function renderCurrentLine() {
-  const line = storyLines[currentLineId];
+  const title = document.getElementById("line-title");
+  const desc = document.getElementById("line-description");
+  const list = document.getElementById("entries-list");
 
-  if (!line) {
-    lineTitleEl.textContent = "Линия не выбрана";
-    lineDescriptionEl.textContent =
-      "Нажми «Получить линию сюжета», чтобы начать.";
-    entriesListEl.classList.add("empty-state");
-    entriesListEl.innerHTML =
-      "<p>Здесь появятся фрагменты, когда линия будет выбрана.</p>";
-    addEntryBtn.disabled = true;
-    changeLineBtn.disabled = true;
+  const addBtn = document.getElementById("add-entry-btn");
+  const changeBtn = document.getElementById("change-line-btn");
+
+  if (!currentLineId) {
+    title.textContent = "Линия не выбрана";
+    desc.textContent = "Нажми «Получить линию», чтобы начать.";
+    list.innerHTML = "<p>Пока нет данных.</p>";
+    list.classList.add("empty");
+    addBtn.disabled = true;
+    changeBtn.disabled = true;
     return;
   }
 
-  lineTitleEl.textContent = line.name;
-  lineDescriptionEl.textContent = line.description;
+  const line = storyLines[currentLineId];
 
-  const entries = Array.isArray(line.entries) ? line.entries : [];
-  if (!entries.length) {
-    entriesListEl.classList.add("empty-state");
-    entriesListEl.innerHTML = "<p>Пока нет ни одного фрагмента — стань первым.</p>";
-  } else {
-    entriesListEl.classList.remove("empty-state");
-    entriesListEl.innerHTML = "";
+  title.textContent = line.name;
+  desc.textContent = line.description;
 
-    const lastThree = entries.slice(-3); // Берём только последние 3
-    lastThree.forEach((text, index) => {
-      const wrapper = document.createElement("div");
-      wrapper.className = "entry-pill";
+  const entries = line.entries;
+  list.innerHTML = "";
+  list.classList.remove("empty");
 
-      const idxSpan = document.createElement("div");
-      idxSpan.className = "entry-index";
-      const globalIndex = entries.length - lastThree.length + index + 1;
-      idxSpan.textContent = `Фрагмент ${globalIndex}`;
-      wrapper.appendChild(idxSpan);
+  entries.slice(-3).forEach(text => {
+    const div = document.createElement("div");
+    div.className = "entry";
+    div.textContent = text;
+    list.appendChild(div);
+  });
 
-      const textP = document.createElement("div");
-      textP.textContent = text;
-      wrapper.appendChild(textP);
-
-      entriesListEl.appendChild(wrapper);
-    });
-  }
-
-  addEntryBtn.disabled = false;
-  changeLineBtn.disabled = false;
-  statusMessageEl.textContent = "";
+  addBtn.disabled = false;
+  changeBtn.disabled = false;
 }
 
-// --- Обзор всех линий ---
-
 function renderOverview() {
-  overviewGridEl.innerHTML = "";
-  const ids = Object.keys(storyLines);
+  const grid = document.getElementById("overview-grid");
+  grid.innerHTML = "";
 
-  ids.forEach((id) => {
-    const line = storyLines[id];
-    const card = document.createElement("article");
+  Object.values(storyLines).forEach(line => {
+    const card = document.createElement("div");
     card.className = "overview-card";
 
-    const title = document.createElement("h3");
-    title.textContent = line.name;
-    card.appendChild(title);
+    card.innerHTML = `
+      <h3>${line.name}</h3>
+      <p><strong>Фрагментов:</strong> ${line.entries.length}</p>
+      <p>${line.entries[line.entries.length - 1]}</p>
+    `;
 
-    const meta = document.createElement("p");
-    meta.className = "overview-meta";
-    const entriesCount = Array.isArray(line.entries) ? line.entries.length : 0;
-    meta.textContent = `Фрагментов: ${entriesCount}`;
-    card.appendChild(meta);
-
-    const last = document.createElement("p");
-    last.className = "overview-last";
-    if (entriesCount === 0) {
-      last.textContent = "Ещё нет ни одного фрагмента.";
-    } else {
-      const lastText = line.entries[line.entries.length - 1];
-      last.textContent = lastText.length > 120
-        ? lastText.slice(0, 117) + "..."
-        : lastText;
-    }
-    card.appendChild(last);
-
-    overviewGridEl.appendChild(card);
+    grid.appendChild(card);
   });
 }
 
-// --- Обработка событий ---
+/* ---------- Actions ---------- */
 
-function handleGetLineClick() {
-  const randomId = getRandomLineId();
-  if (!randomId) return;
-  setCurrentLine(randomId);
+function randomLine() {
+  const keys = Object.keys(storyLines);
+  return keys[Math.floor(Math.random() * keys.length)];
 }
 
-function handleChangeLineClick() {
-  // Просто выбираем новый случайный id, можно допилить, чтобы не повторял
-  const randomId = getRandomLineId();
-  if (!randomId) return;
-  setCurrentLine(randomId);
-}
+document.getElementById("get-line-btn").onclick = () => {
+  currentLineId = randomLine();
+  renderCurrentLine();
+};
 
-function handleAddEntryClick() {
-  if (!currentLineId) {
-    statusMessageEl.textContent = "Сначала выбери линию.";
+document.getElementById("change-line-btn").onclick = () => {
+  currentLineId = randomLine();
+  renderCurrentLine();
+};
+
+document.getElementById("add-entry-btn").onclick = () => {
+  const input = document.getElementById("entry-input");
+  const text = input.value.trim();
+  const status = document.getElementById("status-message");
+
+  if (!text) {
+    status.textContent = "Поле пустое.";
     return;
   }
 
-  const rawText = entryInputEl.value.trim();
-  if (!rawText) {
-    statusMessageEl.textContent = "Нельзя добавить пустой фрагмент.";
-    return;
-  }
+  storyLines[currentLineId].entries.push(text);
+  save();
 
-  const line = storyLines[currentLineId];
-  if (!Array.isArray(line.entries)) {
-    line.entries = [];
-  }
-
-  line.entries.push(rawText);
-  saveStoryLines();
+  input.value = "";
+  status.textContent = "Добавлено!";
   renderCurrentLine();
   renderOverview();
 
-  entryInputEl.value = "";
-  statusMessageEl.textContent = "Фрагмент добавлен!";
-  setTimeout(() => {
-    statusMessageEl.textContent = "";
-  }, 2000);
-}
+  setTimeout(() => (status.textContent = ""), 1500);
+};
 
-// --- Инициализация ---
+/* ---------- INIT ---------- */
 
-function init() {
-  loadStoryLines();
-  renderOverview();
-  renderCurrentLine(); // отрисует состояние "линия не выбрана"
-
-  getLineBtn.addEventListener("click", handleGetLineClick);
-  changeLineBtn.addEventListener("click", handleChangeLineClick);
-  addEntryBtn.addEventListener("click", handleAddEntryClick);
-}
-
-document.addEventListener("DOMContentLoaded", init);
+load();
+renderOverview();
+renderCurrentLine();
