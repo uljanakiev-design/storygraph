@@ -108,14 +108,23 @@ const lineDescInputEl = document.getElementById("line-desc-input");
 const newLineStatusEl = document.getElementById("new-line-status");
 
 // ====== Lokálne ukladanie ======
-const STORAGE_KEY = "story_lines_sk_with_toggle_v1";
+const STORAGE_KEY = "story_lines_sk_with_toggle_v2";
 
 function loadOffline() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     storyLines = JSON.parse(saved);
   } else {
-    storyLines = { ...defaultLines };
+    storyLines = {};
+    Object.values(defaultLines).forEach(line => {
+      storyLines[line.id] = {
+        id: line.id,
+        name: line.name,
+        persona: line.persona,
+        description: line.description,
+        entries: []
+      };
+    });
     saveOffline();
   }
 }
@@ -158,7 +167,7 @@ function subscribeFirestore() {
       async snapshot => {
         if (snapshot.empty && !seeded) {
           seeded = true;
-          await seedFirestoreDefaults();
+          await seedFirestoreDefaults(true); // pri prvom spustení – prázdne
           return;
         }
 
@@ -175,7 +184,7 @@ function subscribeFirestore() {
         });
 
         storyLines = result;
-        saveOffline(); // vždy záloha lokálne
+        saveOffline(); // záloha lokálne
         renderOverview();
         renderCurrentLine();
       },
@@ -208,22 +217,29 @@ function addLineOnline(line) {
   });
 }
 
-// ⬇⬇⬇ НОВАЯ ФУНКЦИЯ: ПОЛНАЯ ОЧИСТКА ОНЛАЙН ДАННЫХ ⬇⬇⬇
+// 🔴 ПОЛНАЯ ОЧИСТКА ОНЛАЙН: все entries становятся []
 async function hardResetOnlineData() {
   if (!firebaseAvailable || !db) return;
 
   try {
-    // 1. Загрузим все документы в коллекции "lines" и удалим их
     const snapshot = await db.collection("lines").get();
-    const batchDelete = db.batch();
-    snapshot.forEach(doc => {
-      batchDelete.delete(doc.ref);
-    });
-    await batchDelete.commit();
+    const batch = db.batch();
 
-    // 2. Создадим только стартовые линии, но с пустыми entries
-    await seedFirestoreDefaults(true);
-    console.log("Online údaje boli vymazané a línie zresetované.");
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const template = defaultLines[doc.id];
+
+      batch.set(doc.ref, {
+        name: template ? template.name : (data.name || "Bez názvu"),
+        persona: template ? template.persona : (data.persona || ""),
+        description: template ? template.description : (data.description || ""),
+        entries: [],
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    });
+
+    await batch.commit();
+    console.log("Online údaje v kolekcii 'lines' boli vyčistené (entries prázdne).");
   } catch (e) {
     console.error("Chyba pri online resete:", e);
   }
@@ -317,29 +333,28 @@ function downloadAllStories() {
   URL.revokeObjectURL(url);
 }
 
-// ====== Reset (začať odznova) ======
+// ====== Reset (Začať odznova) ======
 
 async function resetAllData() {
   const sure = confirm(
-    "Začať odznova?\n\nVšetky lokálne údaje budú vymazané.\nAk je dostupný online režim, vymažú sa aj online údaje pre všetkých používateľov."
+    "Začať odznova?\n\nVšetky lokálne údaje budú vymazané.\nAk je dostupný online režim, vymažú sa aj online údaje (všetky úryvky) pre všetkých používateľov."
   );
   if (!sure) return;
 
-  // 1) Локально: вернуть стартовые линии
+  // 1) Lokálne: všetky línie, prázdne entries
   storyLines = {};
-  // копируем defaultLines, но очищаем entries
   Object.values(defaultLines).forEach(line => {
     storyLines[line.id] = {
       id: line.id,
       name: line.name,
       persona: line.persona,
       description: line.description,
-      entries: [] // очищаем текст
+      entries: []
     };
   });
   saveOffline();
 
-  // 2) Сброс онлайн (если доступен Firebase)
+  // 2) Online: všetkým v kolekcii lines nastaviť entries: []
   if (firebaseAvailable && db) {
     await hardResetOnlineData();
   }
@@ -347,7 +362,7 @@ async function resetAllData() {
   currentLineId = null;
   renderOverview();
   renderCurrentLine();
-  statusMessageEl.textContent = "Všetky údaje boli vymazané a línie sú odznova prázdne.";
+  statusMessageEl.textContent = "Všetky texty boli vymazané (lokálne aj online).";
   setTimeout(() => (statusMessageEl.textContent = ""), 3000);
 }
 
@@ -371,13 +386,13 @@ addEntryBtn.addEventListener("click", async () => {
     return;
   }
 
-  // vždy uložiť lokálne
+  // uložiť lokálne
   const line = storyLines[currentLineId];
   line.entries = line.entries || [];
   line.entries.push(text);
   saveOffline();
 
-  // ak je zapnutá online synchronizácia – skúsiť aj Firestore
+  // Firestore
   if (syncOnline && firebaseAvailable && db) {
     try {
       await addEntryOnline(currentLineId, text);
@@ -471,12 +486,10 @@ onlineToggleEl.addEventListener("change", () => {
 // ====== Inicializácia ======
 
 function init() {
-  // najprv vždy načítame lokálne údaje
   loadOffline();
   renderOverview();
   renderCurrentLine();
 
-  // online synchronizácia vypnutá, používateľ ju môže zapnúť ručne
   syncOnline = false;
   onlineToggleEl.checked = false;
 
