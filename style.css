@@ -1,4 +1,4 @@
-/* Общий фон и типографика */
+/* Všeobecné pozadie a typografia */
 
 body {
   margin: 0;
@@ -29,7 +29,7 @@ h1, h2, h3 {
   margin-top: -8px;
 }
 
-/* Карточки */
+/* Karty */
 
 .card {
   background: #ffffff;
@@ -69,7 +69,7 @@ h1, h2, h3 {
   border-top: 1px solid #e5e5ea;
 }
 
-/* Кнопки */
+/* Tlačidlá */
 
 .btn {
   border: none;
@@ -111,7 +111,7 @@ h1, h2, h3 {
   color: #b00020;
 }
 
-/* Режим / переключатель */
+/* Režim / prepínač */
 
 .mode-row {
   margin-top: 8px;
@@ -167,7 +167,7 @@ h1, h2, h3 {
   user-select: none;
 }
 
-/* Список фрагментов */
+/* Zoznam úryvkov */
 
 .entries {
   background: #f0f0f3;
@@ -192,7 +192,7 @@ h1, h2, h3 {
   font-size: 14px;
 }
 
-/* Текстовое поле */
+/* Textové pole */
 
 textarea {
   width: 100%;
@@ -204,7 +204,7 @@ textarea {
   font-family: inherit;
 }
 
-/* Форма новой линии */
+/* Formulár novej línie */
 
 .new-line-form {
   display: grid;
@@ -233,7 +233,7 @@ textarea {
   font-family: inherit;
 }
 
-/* Обзор линий */
+/* Prehľad línií */
 
 .grid {
   display: grid;
@@ -262,7 +262,7 @@ textarea {
   color: #6e6e73;
 }
 
-/* Мелкий текст/статусы */
+/* Malý text / statusy */
 
 .status {
   color: #6e6e73;
@@ -277,7 +277,7 @@ textarea {
   color: #6e6e73;
 }
 
-/* Адаптив */
+/* Responsívne */
 
 @media (max-width: 640px) {
   .card {
