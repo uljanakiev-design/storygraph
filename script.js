@@ -1,4 +1,4 @@
-// ====== Firebase конфигурация (ТВОЙ проект) ======
+// ====== Firebase конфигурация (твой проект) ======
 const firebaseConfig = {
   apiKey: "AIzaSyCRU-BS3OISzAX-6do7VQC8ImcDSBw7pNE",
   authDomain: "stafeta-c9654.firebaseapp.com",
@@ -10,16 +10,18 @@ const firebaseConfig = {
 };
 
 let db = null;
-let onlineMode = false;
+let firebaseAvailable = false;   // можем ли вообще использовать Firebase
+let syncOnline = false;          // включена ли онлайн-синхронизация (переключатель)
 
+// Инициализируем Firebase, если доступен SDK
 try {
   firebase.initializeApp(firebaseConfig);
   db = firebase.firestore();
-  onlineMode = true;
+  firebaseAvailable = true;
   console.log("Firebase подключён");
 } catch (e) {
-  console.warn("Ошибка инициализации Firebase, работаем офлайн:", e);
-  onlineMode = false;
+  console.warn("Не удалось инициализировать Firebase, работаем только локально:", e);
+  firebaseAvailable = false;
 }
 
 // ====== Стартовые линии по умолчанию ======
@@ -89,6 +91,7 @@ const changeLineBtn = document.getElementById("change-line-btn");
 const addEntryBtn = document.getElementById("add-entry-btn");
 const downloadBtn = document.getElementById("download-btn");
 const addLineBtn = document.getElementById("add-line-btn");
+const resetBtn = document.getElementById("reset-btn");
 
 const lineTitleEl = document.getElementById("line-title");
 const lineDescEl = document.getElementById("line-description");
@@ -97,14 +100,15 @@ const entryInputEl = document.getElementById("entry-input");
 const statusMessageEl = document.getElementById("status-message");
 const overviewGridEl = document.getElementById("overview-grid");
 const onlineIndicatorEl = document.getElementById("online-indicator");
+const onlineToggleEl = document.getElementById("online-toggle");
 
 const personaSelectEl = document.getElementById("persona-select");
 const personaCustomEl = document.getElementById("persona-custom");
 const lineDescInputEl = document.getElementById("line-desc-input");
 const newLineStatusEl = document.getElementById("new-line-status");
 
-// ====== OFFLINE: localStorage всегда включён ======
-const STORAGE_KEY = "story_lines_v3";
+// ====== OFFLINE: localStorage ======
+const STORAGE_KEY = "story_lines_with_toggle_v1";
 
 function loadOffline() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -140,13 +144,19 @@ function seedFirestoreDefaults() {
 }
 
 function subscribeFirestore() {
+  if (!db) return;
+
+  if (firestoreUnsubscribe) {
+    firestoreUnsubscribe();
+    firestoreUnsubscribe = null;
+  }
+
   firestoreUnsubscribe = db
     .collection("lines")
     .orderBy("createdAt", "asc")
     .onSnapshot(
       async snapshot => {
         if (snapshot.empty && !seeded) {
-          // если в базе вообще пусто — закинем стартовые линии
           seeded = true;
           await seedFirestoreDefaults();
           return;
@@ -164,26 +174,23 @@ function subscribeFirestore() {
           };
         });
 
-        // Обновляем память и localStorage, чтобы при перезагрузке не терялось
         storyLines = result;
-        saveOffline();
-
+        saveOffline(); // всегда дублируем локально
         renderOverview();
         renderCurrentLine();
       },
       error => {
         console.error("Ошибка Firestore:", error);
-        onlineMode = false;
-        onlineIndicatorEl.textContent = "Ошибка подключения. Режим: офлайн.";
-        // остаёмся на локальных данных
-        loadOffline();
-        renderOverview();
-        renderCurrentLine();
+        onlineIndicatorEl.textContent =
+          "Ошибка подключения. Режим: локальный (данные только на этом устройстве)";
+        syncOnline = false;
+        onlineToggleEl.checked = false;
       }
     );
 }
 
 function addEntryOnline(lineId, text) {
+  if (!db) return Promise.resolve();
   const ref = db.collection("lines").doc(lineId);
   return ref.update({
     entries: firebase.firestore.FieldValue.arrayUnion(text)
@@ -191,6 +198,7 @@ function addEntryOnline(lineId, text) {
 }
 
 function addLineOnline(line) {
+  if (!db) return Promise.resolve();
   return db.collection("lines").add({
     name: line.name,
     persona: line.persona || "",
@@ -288,7 +296,24 @@ function downloadAllStories() {
   URL.revokeObjectURL(url);
 }
 
-// ====== ОБРАБОТЧИКИ ======
+// ====== СБРОС ДАННЫХ (начать сначала) ======
+
+function resetAllData() {
+  const sure = confirm(
+    "Начать сначала? Все локально сохранённые линии и фрагменты на ЭТОМ устройстве будут удалены."
+  );
+  if (!sure) return;
+
+  storyLines = { ...defaultLines };
+  saveOffline();
+  currentLineId = null;
+  renderOverview();
+  renderCurrentLine();
+  statusMessageEl.textContent = "Локальные данные сброшены.";
+  setTimeout(() => (statusMessageEl.textContent = ""), 2000);
+}
+
+// ====== ОБРАБОТЧИКИ КНОПОК ======
 
 getLineBtn.addEventListener("click", () => {
   currentLineId = randomLineId();
@@ -308,14 +333,14 @@ addEntryBtn.addEventListener("click", async () => {
     return;
   }
 
-  // 1) Всегда сохраняем локально
+  // 1) Всегда обновляем локально
   const line = storyLines[currentLineId];
   line.entries = line.entries || [];
   line.entries.push(text);
   saveOffline();
 
-  // 2) Пытаемся сохранить онлайн
-  if (onlineMode && db) {
+  // 2) Если включён онлайн и Firebase доступен — отправляем в Firestore
+  if (syncOnline && firebaseAvailable && db) {
     try {
       await addEntryOnline(currentLineId, text);
     } catch (e) {
@@ -331,6 +356,8 @@ addEntryBtn.addEventListener("click", async () => {
 });
 
 downloadBtn.addEventListener("click", downloadAllStories);
+
+resetBtn.addEventListener("click", resetAllData);
 
 addLineBtn.addEventListener("click", async () => {
   const personaFromList = personaSelectEl.value.trim();
@@ -350,7 +377,6 @@ addLineBtn.addEventListener("click", async () => {
   const name = `Линия — ${persona}`;
   newLineStatusEl.textContent = "";
 
-  // Локально
   const id = "L" + Date.now();
   storyLines[id] = {
     id,
@@ -361,8 +387,7 @@ addLineBtn.addEventListener("click", async () => {
   };
   saveOffline();
 
-  // Онлайн (не обязательно)
-  if (onlineMode && db) {
+  if (syncOnline && firebaseAvailable && db) {
     try {
       await addLineOnline({ name, persona, description: desc });
     } catch (e) {
@@ -378,21 +403,49 @@ addLineBtn.addEventListener("click", async () => {
   renderOverview();
 });
 
+// Переключатель онлайн / офлайн
+onlineToggleEl.addEventListener("change", () => {
+  if (!firebaseAvailable) {
+    onlineToggleEl.checked = false;
+    onlineIndicatorEl.textContent =
+      "Онлайн-режим недоступен (Firebase не настроен или не работает). Режим: локальный.";
+    return;
+  }
+
+  syncOnline = onlineToggleEl.checked;
+
+  if (syncOnline) {
+    onlineIndicatorEl.textContent =
+      "Режим: онлайн+локальный (несколько людей могут писать по одной ссылке)";
+    subscribeFirestore();
+  } else {
+    if (firestoreUnsubscribe) {
+      firestoreUnsubscribe();
+      firestoreUnsubscribe = null;
+    }
+    onlineIndicatorEl.textContent =
+      "Режим: локальный (данные только на этом устройстве)";
+  }
+});
+
 // ====== ИНИЦИАЛИЗАЦИЯ ======
 
 function init() {
-  // Всегда сначала грузим локальные данные (чтобы не терялись)
+  // Всегда загружаем локальные данные
   loadOffline();
   renderOverview();
   renderCurrentLine();
 
-  if (onlineMode && db) {
+  // По умолчанию онлайн-синхронизация выключена, чтобы ничего не ломало
+  syncOnline = false;
+  onlineToggleEl.checked = false;
+
+  if (!firebaseAvailable) {
     onlineIndicatorEl.textContent =
-      "Режим: онлайн+локально (несколько людей могут писать по одной ссылке)";
-    subscribeFirestore();
+      "Онлайн-режим недоступен (Firebase не подключился). Режим: локальный.";
   } else {
     onlineIndicatorEl.textContent =
-      "Режим: офлайн (данные сохраняются только в этом браузере)";
+      "Режим: локальный (можно включить онлайн-синхронизацию переключателем).";
   }
 }
 
