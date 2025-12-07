@@ -1,198 +1,83 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>StoryGraph — совместные истории</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <title>Линии сюжета — креативное письмо</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
-<header class="nav">
-  <div class="nav-left">
-    <div class="logo-mark"></div>
-    <div>
-      <div class="nav-title">StoryGraph</div>
-      <div class="nav-badge">Тренажёр неожиданных сюжетов</div>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <span class="brand-name">Линии сюжета</span>
     </div>
-  </div>
-</header>
+    <p class="subtitle">Эстафетное креативное письмо в несколько линий</p>
+  </header>
 
-<main class="shell">
-  <section class="hero">
-    <div class="hero-label">
-      <span class="hero-label-dot"></span>
-      <span>Совместное письмо в реальном времени</span>
-    </div>
-    <h1 class="hero-title">Разветвлённые истории, противоречащие друг другу</h1>
-    <p class="hero-subtitle">
-      Создайте 3–4 линии сюжета, дайте авторам ограничение по времени
-      и наблюдайте, как из их решений рождается граф альтернативных историй.
-      Приложение собирает все версии в один экран.
-    </p>
-  </section>
+  <main class="app-main">
+    <section class="intro-card">
+      <h1>Продолжи историю</h1>
+      <p>
+        Нажми кнопку ниже — тебе случайно выпадет одна из линий сюжета.
+        Прочитай, что было написано до тебя, и допиши своё продолжение.
+      </p>
+      <button id="get-line-btn" class="primary-btn">
+        Получить линию сюжета
+      </button>
+    </section>
 
-  <section class="app-card">
-    <div class="app-inner">
-
-      <!-- Левая панель: создание линий и фрагментов -->
-      <div class="panel">
-        <div class="panel-header">
-          <div>
-            <div class="panel-title">Конструктор сюжетов</div>
-            <div class="panel-caption">Линии, фрагменты и лимит времени на ход</div>
-          </div>
-          <div class="pill">
-            <span class="pill-dot"></span>
-            Live Session
-          </div>
+    <section class="line-card" id="line-card">
+      <div class="line-header">
+        <div>
+          <h2 id="line-title">Линия не выбрана</h2>
+          <p id="line-description" class="line-description">
+            Нажми «Получить линию сюжета», чтобы начать.
+          </p>
         </div>
+        <button id="change-line-btn" class="ghost-btn" disabled>
+          Другая линия
+        </button>
+      </div>
 
-        <div class="panel-body">
-
-          <!-- Линии сюжета -->
-          <div>
-            <div class="section-title">Линии сюжета</div>
-            <div class="field-group">
-              <label for="storylineName">Название линии (до 4 штук)</label>
-              <input id="storylineName" type="text" placeholder="Например: «Мир, в котором коты правят людьми»">
-            </div>
-            <div class="field-group" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-              <button id="createLineBtn" class="btn btn-small" type="button">
-                + Добавить линию
-              </button>
-              <div class="hint">
-                Совет: сделайте линии намеренно противоречивыми.
-              </div>
-            </div>
-            <div class="line-chips" id="storylineChips"></div>
-          </div>
-
-          <!-- Новый фрагмент -->
-          <div>
-            <div class="section-title">Новый фрагмент</div>
-            <div class="field-group">
-              <label for="lineSelect">К какой линии относится фрагмент?</label>
-              <select id="lineSelect">
-                <option value="">Сначала создайте линию сюжета</option>
-              </select>
-            </div>
-
-            <div class="field-group">
-              <label for="parentSelect">Какую ветку продолжить?</label>
-              <select id="parentSelect">
-                <option value="">Начать новую ветку внутри выбранной линии</option>
-              </select>
-              <div class="hint">
-                Или щёлкните по пузырю фрагмента в графе справа — он автоматически станет родителем.
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label for="authorInput">Автор хода (опционально)</label>
-              <input id="authorInput" type="text" placeholder="Имя или ник участника">
-            </div>
-
-            <div class="field-group">
-              <label for="textInput">Текст фрагмента</label>
-              <textarea id="textInput" placeholder="Продолжите историю ограниченным временем — или отключите таймер ниже."></textarea>
-            </div>
-
-            <div class="field-group" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-              <button id="addFragmentBtn" class="btn btn-small" type="button">
-                Сохранить фрагмент
-              </button>
-              <div class="hint">
-                Каждый сохранённый фрагмент станет отдельным узлом графа.
-              </div>
-            </div>
-          </div>
-
-          <!-- Таймер -->
-          <div>
-            <div class="section-title">Лимит времени на ход</div>
-            <div class="timer-row">
-              <div style="display:flex;align-items:center;gap:8px;">
-                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                  <div class="toggle">
-                    <input id="timerToggle" type="checkbox" checked>
-                    <div class="toggle-track">
-                      <div class="toggle-thumb"></div>
-                    </div>
-                  </div>
-                  <span class="caps">Таймер включён</span>
-                </label>
-              </div>
-              <div class="timer-info">
-                <span>Ограничение на написание текущего фрагмента</span>
-                <span class="timer-value"><span id="timerSecondsLabel">60</span> секунд</span>
-              </div>
-            </div>
-
-            <div class="range-row">
-              <span>10 c</span>
-              <input id="timerRange" type="range" min="10" max="300" step="10" value="60">
-              <span>5 мин</span>
-            </div>
-
-            <div class="timer-row" style="margin-top:6px;">
-              <div class="timer-display">
-                Состояние таймера: <span id="timerStatus">ожидает старта</span>
-              </div>
-              <button id="timerStartBtn" class="btn-ghost" type="button">
-                Запустить таймер
-              </button>
-            </div>
-          </div>
-
+      <div class="entries-block">
+        <h3>Последние фрагменты</h3>
+        <div id="entries-list" class="entries-list empty-state">
+          <p>Здесь появятся фрагменты, когда линия будет выбрана.</p>
         </div>
       </div>
 
-      <!-- Правая панель: граф и версии -->
-      <div class="panel">
-        <div class="panel-header">
-          <div>
-            <div class="panel-title">Граф истории</div>
-            <div class="panel-caption">Ветвления, противоречия и готовые версии</div>
-          </div>
-          <div class="graph-legend">
-            <span>Нажмите на узел, чтобы выбрать его как родителя.</span>
-          </div>
-        </div>
-
-        <div class="panel-body">
-          <div class="graph-scroll" id="graphContainer">
-            <div class="empty-state" id="graphEmpty">
-              Здесь появятся фрагменты истории. Создайте линии и добавьте первый фрагмент —
-              граф начнёт разрастаться.
-            </div>
-          </div>
-
-          <div class="versions-panel">
-            <div class="graph-header-row">
-              <div class="section-title" style="margin-bottom:0;">Собрать версии истории</div>
-              <button id="collectBtn" class="btn btn-small" type="button">
-                Собрать все версии
-              </button>
-            </div>
-            <div class="hint">
-              Для каждой корневой линии будут собраны все возможные пути от начала до листьев
-              (все варианты истории).
-            </div>
-
-            <div class="versions-list" id="versionsList">
-              <div class="empty-state">
-                Нажмите «Собрать все версии», когда у вас будет хотя бы один фрагмент в каждой линии.
-              </div>
-            </div>
-          </div>
+      <div class="editor-block">
+        <h3>Твоё продолжение</h3>
+        <textarea
+          id="entry-input"
+          rows="4"
+          placeholder="Напиши здесь продолжение этой линии сюжета..."
+        ></textarea>
+        <div class="editor-footer">
+          <span id="status-message" class="status-message"></span>
+          <button id="add-entry-btn" class="primary-btn" disabled>
+            Добавить продолжение
+          </button>
         </div>
       </div>
+    </section>
 
-    </div>
-  </section>
-</main>
+    <section class="overview-section">
+      <h2>Обзор линий</h2>
+      <p class="overview-subtitle">
+        Каждая линия развивается отдельно. Можно продолжать любую из них.
+      </p>
+      <div class="overview-grid" id="overview-grid">
+        <!-- Карточки линий рендерятся из JS -->
+      </div>
+    </section>
+  </main>
 
-<script src="app.js"></script>
+  <footer class="app-footer">
+    <p>Проект для развития креативного письма. Данные сохраняются локально в браузере.</p>
+  </footer>
+
+  <script src="script.js" defer></script>
 </body>
 </html>
