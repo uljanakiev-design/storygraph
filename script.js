@@ -9,7 +9,6 @@ const firebaseConfig = {
   measurementId: "G-ENYX6SR4RZ"
 };
 
-// Попытка инициализации Firebase
 let db = null;
 let onlineMode = false;
 
@@ -23,7 +22,7 @@ try {
   onlineMode = false;
 }
 
-// ====== Стартовые линии (если Firestore пустой или офлайн) ======
+// ====== Стартовые линии по умолчанию ======
 const defaultLines = {
   A: {
     id: "A",
@@ -84,7 +83,7 @@ const defaultLines = {
 let storyLines = {};
 let currentLineId = null;
 
-// DOM элементы
+// ====== DOM ======
 const getLineBtn = document.getElementById("get-line-btn");
 const changeLineBtn = document.getElementById("change-line-btn");
 const addEntryBtn = document.getElementById("add-entry-btn");
@@ -104,8 +103,8 @@ const personaCustomEl = document.getElementById("persona-custom");
 const lineDescInputEl = document.getElementById("line-desc-input");
 const newLineStatusEl = document.getElementById("new-line-status");
 
-// ====== OFFLINE fallback (localStorage) ======
-const STORAGE_KEY = "story_lines_offline_v1";
+// ====== OFFLINE: localStorage всегда включён ======
+const STORAGE_KEY = "story_lines_v3";
 
 function loadOffline() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -121,7 +120,7 @@ function saveOffline() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(storyLines));
 }
 
-// ====== ONLINE Firestore ======
+// ====== ONLINE: Firestore ======
 let firestoreUnsubscribe = null;
 let seeded = false;
 
@@ -144,35 +143,44 @@ function subscribeFirestore() {
   firestoreUnsubscribe = db
     .collection("lines")
     .orderBy("createdAt", "asc")
-    .onSnapshot(async snapshot => {
-      if (snapshot.empty && !seeded) {
-        seeded = true;
-        await seedFirestoreDefaults();
-        return;
-      }
+    .onSnapshot(
+      async snapshot => {
+        if (snapshot.empty && !seeded) {
+          // если в базе вообще пусто — закинем стартовые линии
+          seeded = true;
+          await seedFirestoreDefaults();
+          return;
+        }
 
-      const result = {};
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        result[doc.id] = {
-          id: doc.id,
-          name: data.name || "Без названия",
-          persona: data.persona || "",
-          description: data.description || "",
-          entries: data.entries || []
-        };
-      });
-      storyLines = result;
-      renderOverview();
-      renderCurrentLine();
-    }, error => {
-      console.error("Ошибка Firestore:", error);
-      onlineMode = false;
-      onlineIndicatorEl.textContent = "Ошибка подключения. Режим: офлайн.";
-      loadOffline();
-      renderOverview();
-      renderCurrentLine();
-    });
+        const result = {};
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          result[doc.id] = {
+            id: doc.id,
+            name: data.name || "Без названия",
+            persona: data.persona || "",
+            description: data.description || "",
+            entries: data.entries || []
+          };
+        });
+
+        // Обновляем память и localStorage, чтобы при перезагрузке не терялось
+        storyLines = result;
+        saveOffline();
+
+        renderOverview();
+        renderCurrentLine();
+      },
+      error => {
+        console.error("Ошибка Firestore:", error);
+        onlineMode = false;
+        onlineIndicatorEl.textContent = "Ошибка подключения. Режим: офлайн.";
+        // остаёмся на локальных данных
+        loadOffline();
+        renderOverview();
+        renderCurrentLine();
+      }
+    );
 }
 
 function addEntryOnline(lineId, text) {
@@ -280,7 +288,7 @@ function downloadAllStories() {
   URL.revokeObjectURL(url);
 }
 
-// ====== ОБРАБОТЧИКИ КНОПОК ======
+// ====== ОБРАБОТЧИКИ ======
 
 getLineBtn.addEventListener("click", () => {
   currentLineId = randomLineId();
@@ -300,24 +308,26 @@ addEntryBtn.addEventListener("click", async () => {
     return;
   }
 
-  try {
-    if (onlineMode && db) {
+  // 1) Всегда сохраняем локально
+  const line = storyLines[currentLineId];
+  line.entries = line.entries || [];
+  line.entries.push(text);
+  saveOffline();
+
+  // 2) Пытаемся сохранить онлайн
+  if (onlineMode && db) {
+    try {
       await addEntryOnline(currentLineId, text);
-    } else {
-      const line = storyLines[currentLineId];
-      line.entries = line.entries || [];
-      line.entries.push(text);
-      saveOffline();
+    } catch (e) {
+      console.error("Ошибка при сохранении в Firestore:", e);
     }
-    entryInputEl.value = "";
-    statusMessageEl.textContent = "Фрагмент добавлен!";
-    setTimeout(() => (statusMessageEl.textContent = ""), 1500);
-    renderCurrentLine();
-    renderOverview();
-  } catch (e) {
-    console.error(e);
-    statusMessageEl.textContent = "Ошибка при сохранении.";
   }
+
+  entryInputEl.value = "";
+  statusMessageEl.textContent = "Фрагмент добавлен!";
+  setTimeout(() => (statusMessageEl.textContent = ""), 1500);
+  renderCurrentLine();
+  renderOverview();
 });
 
 downloadBtn.addEventListener("click", downloadAllStories);
@@ -340,44 +350,49 @@ addLineBtn.addEventListener("click", async () => {
   const name = `Линия — ${persona}`;
   newLineStatusEl.textContent = "";
 
-  try {
-    if (onlineMode && db) {
+  // Локально
+  const id = "L" + Date.now();
+  storyLines[id] = {
+    id,
+    name,
+    persona,
+    description: desc,
+    entries: []
+  };
+  saveOffline();
+
+  // Онлайн (не обязательно)
+  if (onlineMode && db) {
+    try {
       await addLineOnline({ name, persona, description: desc });
-    } else {
-      const id = "L" + Date.now();
-      storyLines[id] = {
-        id,
-        name,
-        persona,
-        description: desc,
-        entries: []
-      };
-      saveOffline();
-      renderOverview();
+    } catch (e) {
+      console.error("Ошибка при создании линии в Firestore:", e);
     }
-    personaCustomEl.value = "";
-    lineDescInputEl.value = "";
-    newLineStatusEl.textContent = "Линия создана!";
-    setTimeout(() => (newLineStatusEl.textContent = ""), 1500);
-  } catch (e) {
-    console.error(e);
-    newLineStatusEl.textContent = "Ошибка при создании линии.";
   }
+
+  personaCustomEl.value = "";
+  lineDescInputEl.value = "";
+  newLineStatusEl.textContent = "Линия создана!";
+  setTimeout(() => (newLineStatusEl.textContent = ""), 1500);
+
+  renderOverview();
 });
 
 // ====== ИНИЦИАЛИЗАЦИЯ ======
 
 function init() {
+  // Всегда сначала грузим локальные данные (чтобы не терялись)
+  loadOffline();
+  renderOverview();
+  renderCurrentLine();
+
   if (onlineMode && db) {
     onlineIndicatorEl.textContent =
-      "Режим: онлайн (несколько людей могут писать по одной ссылке)";
+      "Режим: онлайн+локально (несколько людей могут писать по одной ссылке)";
     subscribeFirestore();
   } else {
     onlineIndicatorEl.textContent =
       "Режим: офлайн (данные сохраняются только в этом браузере)";
-    loadOffline();
-    renderOverview();
-    renderCurrentLine();
   }
 }
 
