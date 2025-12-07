@@ -1,4 +1,4 @@
-// ====== Firebase конфигурация (твой проект) ======
+// ====== Firebase konfigurácia (tvoj projekt) ======
 const firebaseConfig = {
   apiKey: "AIzaSyCRU-BS3OISzAX-6do7VQC8ImcDSBw7pNE",
   authDomain: "stafeta-c9654.firebaseapp.com",
@@ -10,74 +10,74 @@ const firebaseConfig = {
 };
 
 let db = null;
-let firebaseAvailable = false;   // можем ли вообще использовать Firebase
-let syncOnline = false;          // включена ли онлайн-синхронизация (переключатель)
+let firebaseAvailable = false;   // či je Firebase dostupný
+let syncOnline = false;          // či je zapnutá online synchronizácia (prepínač)
 
-// Инициализируем Firebase, если доступен SDK
+// Inicializácia Firebase
 try {
   firebase.initializeApp(firebaseConfig);
   db = firebase.firestore();
   firebaseAvailable = true;
-  console.log("Firebase подключён");
+  console.log("Firebase pripojený");
 } catch (e) {
-  console.warn("Не удалось инициализировать Firebase, работаем только локально:", e);
+  console.warn("Nepodarilo sa inicializovať Firebase, bežíme len lokálne:", e);
   firebaseAvailable = false;
 }
 
-// ====== Стартовые линии по умолчанию ======
+// ====== Štartovacie línie ======
 const defaultLines = {
   A: {
     id: "A",
-    name: "Линия A — Путешественник",
-    persona: "Путешественник",
-    description: "Персонаж А отправился утром в незнакомое место.",
+    name: "Línia A – Cestovateľ",
+    persona: "Cestovateľ",
+    description: "Postava A sa skoro ráno vydala na neznáme miesto.",
     entries: [
-      "Персонаж А вышел из дома раньше обычного, хотя не понимал, куда его приведёт день."
+      "Postava A vyšla z domu skôr než zvyčajne, aj keď sama poriadne netušila, kam ju tento deň zavedie."
     ]
   },
   B: {
     id: "B",
-    name: "Линия B — Наблюдатель",
-    persona: "Наблюдатель",
-    description: "Персонаж B остался дома и занимается привычным делом.",
+    name: "Línia B – Pozorovateľ",
+    persona: "Pozorovateľ",
+    description: "Postava B zostáva doma a venuje sa bežným veciam.",
     entries: [
-      "Персонаж B включил экран и решил наконец-то посмотреть то, что откладывал уже месяц."
+      "Postava B si zapla obrazovku a rozhodla sa, že dnes konečne pozrie to, čo už mesiac odkladá."
     ]
   },
   C: {
     id: "C",
-    name: "Линия C — Вода",
-    persona: "Мечтатель",
-    description: "Персонаж C взаимодействует с водой и природой.",
+    name: "Línia C – Voda",
+    persona: "Snílek",
+    description: "Postava C je pri vode a v kontakte s prírodou.",
     entries: [
-      "Персонаж C осторожно вошёл в воду — она была прохладной и неожиданно тихой."
+      "Postava C opatrne vošla do vody – bola chladná a prekvapivo pokojná."
     ]
   },
   D: {
     id: "D",
-    name: "Линия D — Город",
-    persona: "Исследователь",
-    description: "Персонаж D блуждает по городу, замечая странные детали.",
+    name: "Línia D – Mesto",
+    persona: "Prieskumník",
+    description: "Postava D sa túla mestom a všíma si zvláštne detaily.",
     entries: [
-      "Персонаж D понял, что никогда раньше не обращал внимания на надписи на старых домах."
+      "Postava D si uvedomila, že si nikdy predtým nevšímala nápisy na starých domoch."
     ]
   },
   E: {
     id: "E",
-    name: "Линия E — Прошлое",
-    persona: "Хранитель",
-    description: "Линия из прошлого, которая постепенно объясняет происходящее.",
+    name: "Línia E – Minulosť",
+    persona: "Strážca",
+    description: "Línia z minulosti, ktorá postupne vysvetľuje súčasné udalosti.",
     entries: [
-      "Много лет назад кто-то принял решение, которое теперь отзывается в жизни незнакомых людей."
+      "Pred mnohými rokmi urobil niekto rozhodnutie, ktoré dnes doznieva v životoch úplne cudzích ľudí."
     ]
   },
   F: {
     id: "F",
-    name: "Линия F — Неожиданное сообщение",
-    persona: "Скептик",
-    description: "Персонаж F получает странное сообщение и не верит в его серьёзность.",
+    name: "Línia F – Nečakaná správa",
+    persona: "Skeptik",
+    description: "Postava F dostane zvláštnu správu a nemyslí si, že je vážna.",
     entries: [
-      "Сообщение выглядело как шутка, но дата и время в нём совпадали с сегодняшним днём."
+      "Správa vyzerala ako žart, ale dátum a čas v nej sa presne zhodovali s dneškom."
     ]
   }
 };
@@ -107,8 +107,8 @@ const personaCustomEl = document.getElementById("persona-custom");
 const lineDescInputEl = document.getElementById("line-desc-input");
 const newLineStatusEl = document.getElementById("new-line-status");
 
-// ====== OFFLINE: localStorage ======
-const STORAGE_KEY = "story_lines_with_toggle_v1";
+// ====== Lokálne ukladanie ======
+const STORAGE_KEY = "story_lines_sk_with_toggle_v1";
 
 function loadOffline() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -124,7 +124,7 @@ function saveOffline() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(storyLines));
 }
 
-// ====== ONLINE: Firestore ======
+// ====== Firestore (online) ======
 let firestoreUnsubscribe = null;
 let seeded = false;
 
@@ -167,7 +167,7 @@ function subscribeFirestore() {
           const data = doc.data();
           result[doc.id] = {
             id: doc.id,
-            name: data.name || "Без названия",
+            name: data.name || "Bez názvu",
             persona: data.persona || "",
             description: data.description || "",
             entries: data.entries || []
@@ -175,14 +175,14 @@ function subscribeFirestore() {
         });
 
         storyLines = result;
-        saveOffline(); // всегда дублируем локально
+        saveOffline(); // stále záloha lokálne
         renderOverview();
         renderCurrentLine();
       },
       error => {
-        console.error("Ошибка Firestore:", error);
+        console.error("Chyba pri čítaní z Firestore:", error);
         onlineIndicatorEl.textContent =
-          "Ошибка подключения. Режим: локальный (данные только на этом устройстве)";
+          "Chyba pripojenia. Režim: lokálny (údaje len v tomto zariadení)";
         syncOnline = false;
         onlineToggleEl.checked = false;
       }
@@ -208,7 +208,7 @@ function addLineOnline(line) {
   });
 }
 
-// ====== ОБЩАЯ ЛОГИКА ======
+// ====== Logika ======
 
 function randomLineId() {
   const ids = Object.keys(storyLines);
@@ -219,9 +219,9 @@ function randomLineId() {
 
 function renderCurrentLine() {
   if (!currentLineId || !storyLines[currentLineId]) {
-    lineTitleEl.textContent = "Линия не выбрана";
-    lineDescEl.textContent = "Нажми «Получить линию», чтобы начать.";
-    entriesListEl.innerHTML = "<p>Пока нет данных.</p>";
+    lineTitleEl.textContent = "Línia nie je vybraná";
+    lineDescEl.textContent = "Klikni na „Získať líniu“, aby si začal.";
+    entriesListEl.innerHTML = "<p>Zatiaľ žiadne údaje.</p>";
     entriesListEl.classList.add("empty");
     addEntryBtn.disabled = true;
     changeLineBtn.disabled = true;
@@ -237,7 +237,7 @@ function renderCurrentLine() {
   entriesListEl.innerHTML = "";
   if (!entries.length) {
     entriesListEl.classList.add("empty");
-    entriesListEl.innerHTML = "<p>Пока никто не писал. Начни первым!</p>";
+    entriesListEl.innerHTML = "<p>Zatiaľ nikto nepísal. Začni ako prvý!</p>";
   } else {
     entriesListEl.classList.remove("empty");
     entries.slice(-3).forEach(text => {
@@ -258,12 +258,12 @@ function renderOverview() {
     const card = document.createElement("div");
     card.className = "overview-card";
     const count = (line.entries || []).length;
-    const last = count ? line.entries[count - 1] : "Ещё нет ни одного фрагмента.";
+    const last = count ? line.entries[count - 1] : "Zatiaľ bez úryvkov.";
 
     card.innerHTML = `
       <h3>${line.name}</h3>
-      <p class="muted">Персонаж: ${line.persona || "—"}</p>
-      <p class="muted">Фрагментов: ${count}</p>
+      <p class="muted">Postava: ${line.persona || "—"}</p>
+      <p class="muted">Úryvkov: ${count}</p>
       <p>${last}</p>
     `;
     overviewGridEl.appendChild(card);
@@ -276,8 +276,8 @@ function downloadAllStories() {
   let content = "";
   Object.values(storyLines).forEach(line => {
     content += `=== ${line.name} ===\n`;
-    if (line.persona) content += `Персонаж: ${line.persona}\n`;
-    if (line.description) content += `Описание: ${line.description}\n`;
+    if (line.persona) content += `Postava: ${line.persona}\n`;
+    if (line.description) content += `Opis: ${line.description}\n`;
     content += "\n";
     (line.entries || []).forEach((txt, i) => {
       content += `${i + 1}) ${txt}\n`;
@@ -289,18 +289,18 @@ function downloadAllStories() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "story_lines.txt";
+  a.download = "liniove_pribehy.txt";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
 
-// ====== СБРОС ДАННЫХ (начать сначала) ======
+// ====== Reset (začať odznova) ======
 
 function resetAllData() {
   const sure = confirm(
-    "Начать сначала? Все локально сохранённые линии и фрагменты на ЭТОМ устройстве будут удалены."
+    "Začať odznova? Všetky lokálne uložené línie a úryvky v TOMTO zariadení budú vymazané."
   );
   if (!sure) return;
 
@@ -309,11 +309,11 @@ function resetAllData() {
   currentLineId = null;
   renderOverview();
   renderCurrentLine();
-  statusMessageEl.textContent = "Локальные данные сброшены.";
+  statusMessageEl.textContent = "Lokálne údaje boli vymazané.";
   setTimeout(() => (statusMessageEl.textContent = ""), 2000);
 }
 
-// ====== ОБРАБОТЧИКИ КНОПОК ======
+// ====== Handlery tlačidiel ======
 
 getLineBtn.addEventListener("click", () => {
   currentLineId = randomLineId();
@@ -329,27 +329,27 @@ addEntryBtn.addEventListener("click", async () => {
   if (!currentLineId || !storyLines[currentLineId]) return;
   const text = entryInputEl.value.trim();
   if (!text) {
-    statusMessageEl.textContent = "Поле пустое.";
+    statusMessageEl.textContent = "Pole je prázdne.";
     return;
   }
 
-  // 1) Всегда обновляем локально
+  // vždy uložiť lokálne
   const line = storyLines[currentLineId];
   line.entries = line.entries || [];
   line.entries.push(text);
   saveOffline();
 
-  // 2) Если включён онлайн и Firebase доступен — отправляем в Firestore
+  // ak je zapnutá online synchronizácia – skúsiť aj Firestore
   if (syncOnline && firebaseAvailable && db) {
     try {
       await addEntryOnline(currentLineId, text);
     } catch (e) {
-      console.error("Ошибка при сохранении в Firestore:", e);
+      console.error("Chyba pri ukladaní do Firestore:", e);
     }
   }
 
   entryInputEl.value = "";
-  statusMessageEl.textContent = "Фрагмент добавлен!";
+  statusMessageEl.textContent = "Úryvok bol pridaný!";
   setTimeout(() => (statusMessageEl.textContent = ""), 1500);
   renderCurrentLine();
   renderOverview();
@@ -366,15 +366,15 @@ addLineBtn.addEventListener("click", async () => {
   const desc = lineDescInputEl.value.trim();
 
   if (!persona) {
-    newLineStatusEl.textContent = "Укажи персонажа (из списка или своего).";
+    newLineStatusEl.textContent = "Uveď postavu (zo zoznamu alebo vlastnú).";
     return;
   }
   if (!desc) {
-    newLineStatusEl.textContent = "Добавь краткое описание линии.";
+    newLineStatusEl.textContent = "Pridaj krátky opis línie.";
     return;
   }
 
-  const name = `Линия — ${persona}`;
+  const name = `Línia – ${persona}`;
   newLineStatusEl.textContent = "";
 
   const id = "L" + Date.now();
@@ -391,24 +391,24 @@ addLineBtn.addEventListener("click", async () => {
     try {
       await addLineOnline({ name, persona, description: desc });
     } catch (e) {
-      console.error("Ошибка при создании линии в Firestore:", e);
+      console.error("Chyba pri vytváraní línie vo Firestore:", e);
     }
   }
 
   personaCustomEl.value = "";
   lineDescInputEl.value = "";
-  newLineStatusEl.textContent = "Линия создана!";
+  newLineStatusEl.textContent = "Línia bola vytvorená!";
   setTimeout(() => (newLineStatusEl.textContent = ""), 1500);
 
   renderOverview();
 });
 
-// Переключатель онлайн / офлайн
+// Prepínač online / lokálny
 onlineToggleEl.addEventListener("change", () => {
   if (!firebaseAvailable) {
     onlineToggleEl.checked = false;
     onlineIndicatorEl.textContent =
-      "Онлайн-режим недоступен (Firebase не настроен или не работает). Режим: локальный.";
+      "Online režim nie je dostupný (Firebase nie je pripojený). Režim: lokálny.";
     return;
   }
 
@@ -416,7 +416,7 @@ onlineToggleEl.addEventListener("change", () => {
 
   if (syncOnline) {
     onlineIndicatorEl.textContent =
-      "Режим: онлайн+локальный (несколько людей могут писать по одной ссылке)";
+      "Režim: online + lokálny (viac ľudí môže písať na jednom odkaze)";
     subscribeFirestore();
   } else {
     if (firestoreUnsubscribe) {
@@ -424,28 +424,28 @@ onlineToggleEl.addEventListener("change", () => {
       firestoreUnsubscribe = null;
     }
     onlineIndicatorEl.textContent =
-      "Режим: локальный (данные только на этом устройстве)";
+      "Režim: lokálny (údaje sú len v tomto zariadení)";
   }
 });
 
-// ====== ИНИЦИАЛИЗАЦИЯ ======
+// ====== Inicializácia ======
 
 function init() {
-  // Всегда загружаем локальные данные
+  // najprv vždy načítame lokálne údaje
   loadOffline();
   renderOverview();
   renderCurrentLine();
 
-  // По умолчанию онлайн-синхронизация выключена, чтобы ничего не ломало
+  // online synchronizácia vypnutá, používateľ ju môže zapnúť ručne
   syncOnline = false;
   onlineToggleEl.checked = false;
 
   if (!firebaseAvailable) {
     onlineIndicatorEl.textContent =
-      "Онлайн-режим недоступен (Firebase не подключился). Режим: локальный.";
+      "Online režim nie je dostupný (Firebase nie je pripojený). Režim: lokálny.";
   } else {
     onlineIndicatorEl.textContent =
-      "Режим: локальный (можно включить онлайн-синхронизацию переключателем).";
+      "Režim: lokálny (môžeš zapnúť online synchronizáciu prepínačom).";
   }
 }
 
