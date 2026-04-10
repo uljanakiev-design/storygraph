@@ -1,4 +1,4 @@
-// ====== Firebase konfigurácia (tvoj projekt) ======
+// ====== Firebase konfigurácia ======
 const firebaseConfig = {
   apiKey: "AIzaSyCRU-BS3OISzAX-6do7VQC8ImcDSBw7pNE",
   authDomain: "stafeta-c9654.firebaseapp.com",
