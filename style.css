@@ -1,9 +1,16 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Arial, sans-serif;
   background: #f5f5f7;
   color: #1d1d1f;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 600;
+  margin-top: 0;
 }
 
 .container {
@@ -19,45 +26,79 @@ body {
 
 .subtitle {
   color: #6e6e73;
+  margin-top: -8px;
 }
 
-/* CARDS */
-
 .card {
-  background: white;
+  background: #ffffff;
   padding: 24px;
-  border-radius: 20px;
   margin-bottom: 24px;
+  border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 }
 
-.line-header-row,
+.top-actions-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.start-block,
+.create-line-block {
+  min-width: 0;
+}
+
 .card-header-row,
+.line-header-row,
 .subline-header,
 .mode-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
 }
 
-/* BUTTONS */
+.card-header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.desc {
+  color: #6e6e73;
+  margin-top: 4px;
+}
+
+.divider {
+  margin: 20px 0;
+  border: none;
+  border-top: 1px solid #e5e5ea;
+}
 
 .btn {
   border: none;
-  border-radius: 999px;
   padding: 10px 20px;
+  border-radius: 999px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
+  margin-top: 10px;
+  font-family: inherit;
 }
 
 .btn.primary {
   background: #0071e3;
-  color: white;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(0,113,227,0.35);
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: #0a84ff;
 }
 
 .btn.secondary {
   background: #e5e5ea;
+  color: #1d1d1f;
 }
 
 .btn:disabled {
@@ -67,6 +108,7 @@ body {
 
 .small-btn {
   padding: 6px 14px;
+  font-size: 14px;
 }
 
 .danger-btn {
@@ -74,62 +116,38 @@ body {
   color: #b00020;
 }
 
-/* TOGGLE */
-
-.toggle {
-  display: inline-flex;
+.mode-row {
+  margin-top: 12px;
+  margin-bottom: 16px;
   align-items: center;
+}
+
+.mode-buttons {
+  display: flex;
   gap: 8px;
-  cursor: pointer;
-  user-select: none;
-  min-height: 32px;
+  flex-wrap: wrap;
 }
 
-.toggle input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
+.mode-btn {
+  margin-top: 0;
+  background: #e5e5ea;
+  color: #1d1d1f;
+  box-shadow: none;
 }
 
-.toggle-slider {
-  width: 44px;
-  height: 26px;
-  border-radius: 999px;
-  background: #d2d2d7;
-  position: relative;
-  transition: background 0.2s ease;
-  flex-shrink: 0;
-}
-
-.toggle-slider::before {
-  content: "";
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: white;
-  top: 3px;
-  left: 3px;
-  transition: transform 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.25);
-}
-
-.toggle input:checked + .toggle-slider {
+.mode-btn.active-mode {
   background: #34c759;
+  color: #ffffff;
 }
-
-.toggle input:checked + .toggle-slider::before {
-  transform: translateX(18px);
-}
-
-/* ENTRIES */
 
 .entries,
 .sublines-list {
   background: #f0f0f3;
-  border-radius: 14px;
   padding: 12px;
-  margin-bottom: 12px;
+  border-radius: 14px;
+  max-height: 240px;
+  overflow-y: auto;
+  margin-bottom: 10px;
 }
 
 .entries.empty,
@@ -139,24 +157,31 @@ body {
 }
 
 .entry {
-  background: white;
-  padding: 10px;
+  background: #ffffff;
   border-radius: 12px;
+  padding: 8px 10px;
   margin-bottom: 8px;
   border-left: 4px solid #0071e3;
+  font-size: 14px;
 }
 
-/* SUBLINES */
-
 .subline-card {
-  background: white;
+  background: #ffffff;
   border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
   border-left: 4px solid #34c759;
 }
 
-/* TEXTAREA */
+.subline-card h4 {
+  margin: 0 0 4px;
+}
+
+.subline-card p {
+  margin: 0;
+  color: #6e6e73;
+  font-size: 14px;
+}
 
 textarea {
   width: 100%;
@@ -164,31 +189,20 @@ textarea {
   border-radius: 12px;
   border: 1px solid #d2d2d7;
   resize: vertical;
-  margin-bottom: 10px;
   font-size: 15px;
+  font-family: inherit;
   box-sizing: border-box;
 }
 
-/* GRID */
-
-.grid {
-  display: grid;
-  grid-template-columns:
-    repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
-}
-
-.overview-card {
-  background: #fafafa;
-  border-radius: 14px;
-  padding: 14px;
-}
-
-/* FORM */
-
 .new-line-form {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
+  margin-top: 8px;
+}
+
+.new-line-form.compact {
+  grid-template-columns: 1fr;
 }
 
 .field {
@@ -197,18 +211,51 @@ textarea {
   gap: 4px;
 }
 
-.field input {
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #d2d2d7;
+.field label {
+  font-size: 13px;
+  color: #6e6e73;
 }
 
-/* TEXT */
+.field input,
+.field select {
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1px solid #d2d2d7;
+  font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
 
-.divider {
-  margin: 20px 0;
-  border: none;
-  border-top: 1px solid #e5e5ea;
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.overview-card {
+  background: #fafafa;
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+}
+
+.overview-card h3 {
+  margin-bottom: 4px;
+}
+
+.overview-card p {
+  margin: 2px 0;
+  font-size: 14px;
+}
+
+.overview-card .muted {
+  font-size: 13px;
+  color: #6e6e73;
+}
+
+.status {
+  color: #6e6e73;
+  font-size: 14px;
 }
 
 .small {
@@ -219,28 +266,13 @@ textarea {
   color: #6e6e73;
 }
 
-.status {
-  color: #6e6e73;
-  font-size: 14px;
+@media (max-width: 740px) {
+  .top-actions-layout {
+    grid-template-columns: 1fr;
+  }
 }
-
-.desc {
-  color: #6e6e73;
-}
-
-/* MOBILE */
 
 @media (max-width: 640px) {
-
-  .line-header-row,
-  .card-header-row,
-  .subline-header,
-  .mode-row {
-
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
   .container {
     padding: 12px;
   }
@@ -249,7 +281,24 @@ textarea {
     padding: 18px;
   }
 
+  .card-header-row,
+  .line-header-row,
+  .subline-header,
+  .mode-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .card-header-actions,
+  .mode-buttons {
+    width: 100%;
+  }
+
   .btn {
     width: 100%;
+  }
+
+  .mode-btn {
+    width: calc(50% - 4px);
   }
 }
