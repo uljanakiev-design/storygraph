@@ -21,6 +21,8 @@ body {
   color: #6e6e73;
 }
 
+/* CARDS */
+
 .card {
   background: white;
   padding: 24px;
@@ -38,6 +40,8 @@ body {
   align-items: center;
   gap: 12px;
 }
+
+/* BUTTONS */
 
 .btn {
   border: none;
@@ -70,6 +74,56 @@ body {
   color: #b00020;
 }
 
+/* TOGGLE */
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  min-height: 32px;
+}
+
+.toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle-slider {
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  background: #d2d2d7;
+  position: relative;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+}
+
+.toggle input:checked + .toggle-slider {
+  background: #34c759;
+}
+
+.toggle input:checked + .toggle-slider::before {
+  transform: translateX(18px);
+}
+
+/* ENTRIES */
+
 .entries,
 .sublines-list {
   background: #f0f0f3;
@@ -92,6 +146,8 @@ body {
   border-left: 4px solid #0071e3;
 }
 
+/* SUBLINES */
+
 .subline-card {
   background: white;
   border-radius: 12px;
@@ -100,6 +156,8 @@ body {
   border-left: 4px solid #34c759;
 }
 
+/* TEXTAREA */
+
 textarea {
   width: 100%;
   padding: 12px;
@@ -107,7 +165,11 @@ textarea {
   border: 1px solid #d2d2d7;
   resize: vertical;
   margin-bottom: 10px;
+  font-size: 15px;
+  box-sizing: border-box;
 }
+
+/* GRID */
 
 .grid {
   display: grid;
@@ -121,6 +183,8 @@ textarea {
   border-radius: 14px;
   padding: 14px;
 }
+
+/* FORM */
 
 .new-line-form {
   display: grid;
@@ -138,6 +202,8 @@ textarea {
   border-radius: 10px;
   border: 1px solid #d2d2d7;
 }
+
+/* TEXT */
 
 .divider {
   margin: 20px 0;
@@ -158,33 +224,11 @@ textarea {
   font-size: 14px;
 }
 
-.toggle {
-  display: inline-flex;
-  align-items: center;
+.desc {
+  color: #6e6e73;
 }
 
-.toggle input {
-  display: none;
-}
-
-.toggle-slider {
-  width: 38px;
-  height: 22px;
-  border-radius: 999px;
-  background: #d2d2d7;
-  position: relative;
-}
-
-.toggle-slider::before {
-  content: "";
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: white;
-  top: 3px;
-  left: 3px;
-}
+/* MOBILE */
 
 @media (max-width: 640px) {
 
@@ -195,5 +239,17 @@ textarea {
 
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .container {
+    padding: 12px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .btn {
+    width: 100%;
   }
 }
