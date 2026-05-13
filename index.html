@@ -2,23 +2,25 @@
 <html lang="sk">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Líniové príbehy</title>
 
   <link rel="stylesheet" href="style.css">
 
-  <!-- Firebase compat SDK -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
 <header class="app-header">
+
   <h1>Líniové príbehy</h1>
 
   <p class="subtitle">
-    Štafetové kreatívne písanie v paralelných dejových líniách
+    Kreatívne paralelné príbehy s podlíniami
   </p>
+
 </header>
 
 <main class="container">
@@ -30,7 +32,7 @@
     <h2>Pokračuj v príbehu</h2>
 
     <p>
-      Klikni na tlačidlo nižšie – náhodne sa ti pridelí dejová línia.
+      Klikni na tlačidlo a dostaneš náhodnú dejovú líniu.
     </p>
 
     <button id="get-line-btn" class="btn primary">
@@ -41,25 +43,31 @@
 
   <!-- ACTIVE LINE -->
 
-  <section id="line-card" class="card">
+  <section class="card">
 
     <div class="line-header-row">
 
       <div>
-        <h2 id="line-title">Línia nie je vybraná</h2>
+        <h2 id="line-title">
+          Línia nie je vybraná
+        </h2>
 
         <p id="line-description" class="desc">
           Klikni na „Získať líniu“
         </p>
       </div>
 
-      <button id="change-line-btn"
-              class="btn secondary"
-              disabled>
+      <button
+        id="change-line-btn"
+        class="btn secondary"
+        disabled
+      >
         Iná línia
       </button>
 
     </div>
+
+    <!-- TOGGLE -->
 
     <div class="mode-row">
 
@@ -68,28 +76,42 @@
       </p>
 
       <label class="toggle">
-        <input type="checkbox" id="online-toggle">
+
+        <input
+          type="checkbox"
+          id="online-toggle"
+        >
+
         <span class="toggle-slider"></span>
+
+        <span class="toggle-label-text small">
+          Online synchronizácia
+        </span>
+
       </label>
 
     </div>
 
     <!-- ENTRIES -->
 
-    <h3>Posledné úryvky</h3>
+    <h3>Úryvky</h3>
 
     <div id="entries-list" class="entries empty">
-      <p>Zatiaľ žiadne údaje</p>
+      <p>Zatiaľ bez úryvkov</p>
     </div>
 
-    <textarea id="entry-input"
-              rows="3"
-              placeholder="Napíš pokračovanie..."></textarea>
+    <textarea
+      id="entry-input"
+      rows="4"
+      placeholder="Napíš pokračovanie..."
+    ></textarea>
 
-    <button id="add-entry-btn"
-            class="btn primary"
-            disabled>
-      Pridať
+    <button
+      id="add-entry-btn"
+      class="btn primary"
+      disabled
+    >
+      Pridať úryvok
     </button>
 
     <p id="status-message" class="status"></p>
@@ -104,13 +126,15 @@
         <h3>Podlínie</h3>
 
         <p class="small muted">
-          Vedľajšie vetvy aktuálnej línie
+          Vedľajšie vetvy príbehu
         </p>
       </div>
 
-      <button id="create-subline-btn"
-              class="btn secondary small-btn"
-              disabled>
+      <button
+        id="create-subline-btn"
+        class="btn secondary small-btn"
+        disabled
+      >
         Nová podlínia
       </button>
 
@@ -137,13 +161,17 @@
 
       <div class="card-header-actions">
 
-        <button id="download-btn"
-                class="btn secondary small-btn">
+        <button
+          id="download-btn"
+          class="btn secondary small-btn"
+        >
           Export
         </button>
 
-        <button id="reset-btn"
-                class="btn secondary small-btn danger-btn">
+        <button
+          id="reset-btn"
+          class="btn secondary small-btn danger-btn"
+        >
           Reset
         </button>
 
@@ -155,30 +183,40 @@
 
     <hr class="divider">
 
-    <!-- CREATE LINE -->
+    <!-- NEW LINE -->
 
-    <h3>Vytvoriť vlastnú líniu</h3>
+    <h3>Nová línia</h3>
 
     <div class="new-line-form">
 
       <div class="field">
+
         <label>Postava</label>
 
-        <input id="persona-custom"
-               type="text"
-               placeholder="Postava">
+        <input
+          id="persona-custom"
+          type="text"
+          placeholder="Meno postavy"
+        >
+
       </div>
 
       <div class="field">
+
         <label>Opis línie</label>
 
-        <input id="line-desc-input"
-               type="text"
-               placeholder="Opis">
+        <input
+          id="line-desc-input"
+          type="text"
+          placeholder="Opis deja"
+        >
+
       </div>
 
-      <button id="add-line-btn"
-              class="btn primary">
+      <button
+        id="add-line-btn"
+        class="btn primary"
+      >
         Vytvoriť líniu
       </button>
 
