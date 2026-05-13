@@ -11,31 +11,37 @@ let firebaseAvailable = false;
 let syncOnline = false;
 
 try {
+
   firebase.initializeApp(firebaseConfig);
+
   db = firebase.firestore();
+
   firebaseAvailable = true;
+
 } catch (e) {
+
   console.warn("Firebase disabled");
+
 }
 
-// ===== DEFAULT LINES =====
+// ===== DEFAULT DATA =====
 
 const defaultLines = {
 
   A: {
     id: "A",
-    name: "Línia A – Cestovateľ",
+    name: "Línia A",
     persona: "Cestovateľ",
-    description: "Postava A cestuje.",
+    description: "Tajomná cesta do neznáma.",
     entries: [],
     sublines: []
   },
 
   B: {
     id: "B",
-    name: "Línia B – Vedec",
+    name: "Línia B",
     persona: "Vedec",
-    description: "Postava B skúma zvláštny jav.",
+    description: "Experiment sa pokazil.",
     entries: [],
     sublines: []
   }
@@ -45,9 +51,7 @@ const defaultLines = {
 let storyLines = {};
 let currentLineId = null;
 
-// ===== STORAGE =====
-
-const STORAGE_KEY = "story_lines_sublines_v1";
+const STORAGE_KEY = "story_lines_v3";
 
 // ===== DOM =====
 
@@ -75,7 +79,7 @@ const downloadBtn =
 const lineTitleEl =
   document.getElementById("line-title");
 
-const lineDescEl =
+const lineDescriptionEl =
   document.getElementById("line-description");
 
 const entriesListEl =
@@ -126,7 +130,7 @@ function loadOffline() {
   }
 }
 
-// ===== RANDOM LINE =====
+// ===== RANDOM =====
 
 function randomLineId() {
 
@@ -139,7 +143,7 @@ function randomLineId() {
   ];
 }
 
-// ===== RENDER LINE =====
+// ===== RENDER CURRENT =====
 
 function renderCurrentLine() {
 
@@ -151,11 +155,11 @@ function renderCurrentLine() {
     lineTitleEl.textContent =
       "Línia nie je vybraná";
 
-    lineDescEl.textContent =
+    lineDescriptionEl.textContent =
       "Klikni na „Získať líniu“";
 
     entriesListEl.innerHTML =
-      "<p>Zatiaľ žiadne údaje</p>";
+      "<p>Zatiaľ bez úryvkov</p>";
 
     sublinesListEl.innerHTML =
       "<p>Žiadne podlínie</p>";
@@ -169,10 +173,21 @@ function renderCurrentLine() {
   lineTitleEl.textContent =
     line.name;
 
-  lineDescEl.textContent =
+  lineDescriptionEl.textContent =
     line.description;
 
-  // ENTRIES
+  renderEntries(line);
+
+  renderSublines(line);
+
+  addEntryBtn.disabled = false;
+  createSublineBtn.disabled = false;
+  changeLineBtn.disabled = false;
+}
+
+// ===== ENTRIES =====
+
+function renderEntries(line) {
 
   entriesListEl.innerHTML = "";
 
@@ -183,38 +198,27 @@ function renderCurrentLine() {
     entriesListEl.innerHTML =
       "<p>Zatiaľ bez úryvkov</p>";
 
-  } else {
-
-    entriesListEl.classList.remove("empty");
-
-    line.entries.forEach(text => {
-
-      const div =
-        document.createElement("div");
-
-      div.className = "entry";
-
-      div.textContent = text;
-
-      entriesListEl.appendChild(div);
-    });
+    return;
   }
 
-  // SUBLINES
+  entriesListEl.classList.remove("empty");
 
-  renderSublines();
+  line.entries.forEach(text => {
 
-  addEntryBtn.disabled = false;
-  changeLineBtn.disabled = false;
-  createSublineBtn.disabled = false;
+    const div =
+      document.createElement("div");
+
+    div.className = "entry";
+
+    div.textContent = text;
+
+    entriesListEl.appendChild(div);
+  });
 }
 
-// ===== RENDER SUBLINES =====
+// ===== SUBLINES =====
 
-function renderSublines() {
-
-  const line =
-    storyLines[currentLineId];
+function renderSublines(line) {
 
   sublinesListEl.innerHTML = "";
 
@@ -284,86 +288,9 @@ function renderOverview() {
   });
 }
 
-// ===== EXPORT =====
+// ===== ADD ENTRY =====
 
-function downloadAllStories() {
-
-  let content = "";
-
-  Object.values(storyLines).forEach(line => {
-
-    content += `=== ${line.name} ===\n`;
-
-    content += `Postava: ${line.persona}\n`;
-
-    content += `Opis: ${line.description}\n\n`;
-
-    content += `Úryvky:\n`;
-
-    line.entries.forEach((e, i) => {
-
-      content += `${i + 1}. ${e}\n`;
-    });
-
-    content += `\nPodlínie:\n`;
-
-    line.sublines.forEach((s, i) => {
-
-      content += `${i + 1}. ${s.title}\n`;
-      content += `${s.description}\n\n`;
-    });
-
-    content += `------------------\n\n`;
-  });
-
-  const blob = new Blob(
-    [content],
-    { type: "text/plain" }
-  );
-
-  const url =
-    URL.createObjectURL(blob);
-
-  const a =
-    document.createElement("a");
-
-  a.href = url;
-
-  a.download =
-    "stories.txt";
-
-  document.body.appendChild(a);
-
-  a.click();
-
-  document.body.removeChild(a);
-
-  URL.revokeObjectURL(url);
-}
-
-// ===== EVENTS =====
-
-// RANDOM LINE
-
-getLineBtn.addEventListener("click", () => {
-
-  currentLineId = randomLineId();
-
-  renderCurrentLine();
-});
-
-// CHANGE LINE
-
-changeLineBtn.addEventListener("click", () => {
-
-  currentLineId = randomLineId();
-
-  renderCurrentLine();
-});
-
-// ADD ENTRY
-
-addEntryBtn.addEventListener("click", () => {
+function addEntry() {
 
   if (!currentLineId) return;
 
@@ -391,11 +318,11 @@ addEntryBtn.addEventListener("click", () => {
 
   renderCurrentLine();
   renderOverview();
-});
+}
 
-// CREATE SUBLINE
+// ===== CREATE SUBLINE =====
 
-createSublineBtn.addEventListener("click", () => {
+function createSubline() {
 
   if (!currentLineId) return;
 
@@ -422,11 +349,11 @@ createSublineBtn.addEventListener("click", () => {
 
   renderCurrentLine();
   renderOverview();
-});
+}
 
-// CREATE LINE
+// ===== CREATE LINE =====
 
-addLineBtn.addEventListener("click", () => {
+function createLine() {
 
   const persona =
     personaCustomEl.value.trim();
@@ -460,14 +387,14 @@ addLineBtn.addEventListener("click", () => {
   lineDescInputEl.value = "";
 
   renderOverview();
-});
+}
 
-// RESET
+// ===== RESET =====
 
-resetBtn.addEventListener("click", () => {
+function resetAll() {
 
   const sure =
-    confirm("Reset?");
+    confirm("Vymazať všetko?");
 
   if (!sure) return;
 
@@ -481,13 +408,122 @@ resetBtn.addEventListener("click", () => {
 
   renderCurrentLine();
   renderOverview();
-});
+}
 
-// DOWNLOAD
+// ===== EXPORT =====
+
+function exportStories() {
+
+  let content = "";
+
+  Object.values(storyLines).forEach(line => {
+
+    content +=
+      `=== ${line.name} ===\n`;
+
+    content +=
+      `Postava: ${line.persona}\n`;
+
+    content +=
+      `Opis: ${line.description}\n\n`;
+
+    content +=
+      `Úryvky:\n`;
+
+    line.entries.forEach((e, i) => {
+
+      content +=
+        `${i + 1}. ${e}\n`;
+    });
+
+    content +=
+      `\nPodlínie:\n`;
+
+    line.sublines.forEach((s, i) => {
+
+      content +=
+        `${i + 1}. ${s.title}\n`;
+
+      content +=
+        `${s.description}\n\n`;
+    });
+
+    content +=
+      `-----------------\n\n`;
+  });
+
+  const blob = new Blob(
+    [content],
+    { type: "text/plain" }
+  );
+
+  const url =
+    URL.createObjectURL(blob);
+
+  const a =
+    document.createElement("a");
+
+  a.href = url;
+
+  a.download =
+    "stories.txt";
+
+  document.body.appendChild(a);
+
+  a.click();
+
+  document.body.removeChild(a);
+
+  URL.revokeObjectURL(url);
+}
+
+// ===== EVENTS =====
+
+getLineBtn.addEventListener(
+  "click",
+  () => {
+
+    currentLineId =
+      randomLineId();
+
+    renderCurrentLine();
+  }
+);
+
+changeLineBtn.addEventListener(
+  "click",
+  () => {
+
+    currentLineId =
+      randomLineId();
+
+    renderCurrentLine();
+  }
+);
+
+addEntryBtn.addEventListener(
+  "click",
+  addEntry
+);
+
+createSublineBtn.addEventListener(
+  "click",
+  createSubline
+);
+
+addLineBtn.addEventListener(
+  "click",
+  createLine
+);
+
+resetBtn.addEventListener(
+  "click",
+  resetAll
+);
 
 downloadBtn.addEventListener(
   "click",
-  downloadAllStories
+  exportStories
 );
 
 // ===== INIT =====
