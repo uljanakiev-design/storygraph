@@ -1,3 +1,5 @@
+// ===== FIREBASE =====
+
 const firebaseConfig = {
   apiKey: "YOUR_KEY",
   authDomain: "YOUR_DOMAIN",
@@ -13,55 +15,94 @@ try {
   db = firebase.firestore();
   firebaseAvailable = true;
 } catch (e) {
-  console.warn(e);
+  console.warn("Firebase disabled");
 }
 
+// ===== DEFAULT LINES =====
+
 const defaultLines = {
+
   A: {
     id: "A",
-    name: "Línia A",
+    name: "Línia A – Cestovateľ",
     persona: "Cestovateľ",
-    description: "Príbeh cestovateľa",
+    description: "Postava A cestuje.",
     entries: [],
     sublines: []
   },
 
   B: {
     id: "B",
-    name: "Línia B",
+    name: "Línia B – Vedec",
     persona: "Vedec",
-    description: "Príbeh vedca",
+    description: "Postava B skúma zvláštny jav.",
     entries: [],
     sublines: []
   }
+
 };
 
 let storyLines = {};
 let currentLineId = null;
 
-const STORAGE_KEY = "story_lines_with_sublines";
+// ===== STORAGE =====
 
-const getLineBtn = document.getElementById("get-line-btn");
-const changeLineBtn = document.getElementById("change-line-btn");
-const addEntryBtn = document.getElementById("add-entry-btn");
-const createSublineBtn = document.getElementById("create-subline-btn");
+const STORAGE_KEY = "story_lines_sublines_v1";
 
-const lineTitleEl = document.getElementById("line-title");
-const lineDescEl = document.getElementById("line-description");
-const entriesListEl = document.getElementById("entries-list");
-const sublinesListEl = document.getElementById("sublines-list");
+// ===== DOM =====
 
-const entryInputEl = document.getElementById("entry-input");
-const statusMessageEl = document.getElementById("status-message");
+const getLineBtn =
+  document.getElementById("get-line-btn");
 
-const overviewGridEl = document.getElementById("overview-grid");
+const changeLineBtn =
+  document.getElementById("change-line-btn");
 
-const personaCustomEl = document.getElementById("persona-custom");
-const lineDescInputEl = document.getElementById("line-desc-input");
+const addEntryBtn =
+  document.getElementById("add-entry-btn");
 
-const addLineBtn = document.getElementById("add-line-btn");
+const createSublineBtn =
+  document.getElementById("create-subline-btn");
+
+const addLineBtn =
+  document.getElementById("add-line-btn");
+
+const resetBtn =
+  document.getElementById("reset-btn");
+
+const downloadBtn =
+  document.getElementById("download-btn");
+
+const lineTitleEl =
+  document.getElementById("line-title");
+
+const lineDescEl =
+  document.getElementById("line-description");
+
+const entriesListEl =
+  document.getElementById("entries-list");
+
+const sublinesListEl =
+  document.getElementById("sublines-list");
+
+const entryInputEl =
+  document.getElementById("entry-input");
+
+const statusMessageEl =
+  document.getElementById("status-message");
+
+const overviewGridEl =
+  document.getElementById("overview-grid");
+
+const personaCustomEl =
+  document.getElementById("persona-custom");
+
+const lineDescInputEl =
+  document.getElementById("line-desc-input");
+
+// ===== STORAGE =====
 
 function saveOffline() {
+
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify(storyLines)
@@ -70,53 +111,96 @@ function saveOffline() {
 
 function loadOffline() {
 
-  const saved = localStorage.getItem(STORAGE_KEY);
+  const saved =
+    localStorage.getItem(STORAGE_KEY);
 
   if (saved) {
+
     storyLines = JSON.parse(saved);
+
   } else {
+
     storyLines = defaultLines;
+
     saveOffline();
   }
 }
 
+// ===== RANDOM LINE =====
+
 function randomLineId() {
 
   const ids = Object.keys(storyLines);
+
+  if (!ids.length) return null;
 
   return ids[
     Math.floor(Math.random() * ids.length)
   ];
 }
 
+// ===== RENDER LINE =====
+
 function renderCurrentLine() {
 
-  if (!currentLineId) return;
+  if (
+    !currentLineId ||
+    !storyLines[currentLineId]
+  ) {
 
-  const line = storyLines[currentLineId];
+    lineTitleEl.textContent =
+      "Línia nie je vybraná";
 
-  lineTitleEl.textContent = line.name;
-  lineDescEl.textContent = line.description;
+    lineDescEl.textContent =
+      "Klikni na „Získať líniu“";
+
+    entriesListEl.innerHTML =
+      "<p>Zatiaľ žiadne údaje</p>";
+
+    sublinesListEl.innerHTML =
+      "<p>Žiadne podlínie</p>";
+
+    return;
+  }
+
+  const line =
+    storyLines[currentLineId];
+
+  lineTitleEl.textContent =
+    line.name;
+
+  lineDescEl.textContent =
+    line.description;
+
+  // ENTRIES
 
   entriesListEl.innerHTML = "";
 
   if (!line.entries.length) {
+
+    entriesListEl.classList.add("empty");
 
     entriesListEl.innerHTML =
       "<p>Zatiaľ bez úryvkov</p>";
 
   } else {
 
+    entriesListEl.classList.remove("empty");
+
     line.entries.forEach(text => {
 
-      const div = document.createElement("div");
+      const div =
+        document.createElement("div");
 
       div.className = "entry";
+
       div.textContent = text;
 
       entriesListEl.appendChild(div);
     });
   }
+
+  // SUBLINES
 
   renderSublines();
 
@@ -125,9 +209,12 @@ function renderCurrentLine() {
   createSublineBtn.disabled = false;
 }
 
+// ===== RENDER SUBLINES =====
+
 function renderSublines() {
 
-  const line = storyLines[currentLineId];
+  const line =
+    storyLines[currentLineId];
 
   sublinesListEl.innerHTML = "";
 
@@ -145,9 +232,11 @@ function renderSublines() {
 
   line.sublines.forEach(sub => {
 
-    const card = document.createElement("div");
+    const card =
+      document.createElement("div");
 
-    card.className = "subline-card";
+    card.className =
+      "subline-card";
 
     card.innerHTML = `
       <h4>${sub.title}</h4>
@@ -158,29 +247,103 @@ function renderSublines() {
   });
 }
 
+// ===== OVERVIEW =====
+
 function renderOverview() {
 
   overviewGridEl.innerHTML = "";
 
   Object.values(storyLines).forEach(line => {
 
-    const card = document.createElement("div");
+    const card =
+      document.createElement("div");
 
-    card.className = "overview-card";
+    card.className =
+      "overview-card";
 
     card.innerHTML = `
       <h3>${line.name}</h3>
 
-      <p>Podlínie:
-      ${line.sublines.length}</p>
+      <p class="muted">
+        Postava:
+        ${line.persona}
+      </p>
 
-      <p>Úryvky:
-      ${line.entries.length}</p>
+      <p class="muted">
+        Úryvky:
+        ${line.entries.length}
+      </p>
+
+      <p class="muted">
+        Podlínie:
+        ${line.sublines.length}
+      </p>
     `;
 
     overviewGridEl.appendChild(card);
   });
 }
+
+// ===== EXPORT =====
+
+function downloadAllStories() {
+
+  let content = "";
+
+  Object.values(storyLines).forEach(line => {
+
+    content += `=== ${line.name} ===\n`;
+
+    content += `Postava: ${line.persona}\n`;
+
+    content += `Opis: ${line.description}\n\n`;
+
+    content += `Úryvky:\n`;
+
+    line.entries.forEach((e, i) => {
+
+      content += `${i + 1}. ${e}\n`;
+    });
+
+    content += `\nPodlínie:\n`;
+
+    line.sublines.forEach((s, i) => {
+
+      content += `${i + 1}. ${s.title}\n`;
+      content += `${s.description}\n\n`;
+    });
+
+    content += `------------------\n\n`;
+  });
+
+  const blob = new Blob(
+    [content],
+    { type: "text/plain" }
+  );
+
+  const url =
+    URL.createObjectURL(blob);
+
+  const a =
+    document.createElement("a");
+
+  a.href = url;
+
+  a.download =
+    "stories.txt";
+
+  document.body.appendChild(a);
+
+  a.click();
+
+  document.body.removeChild(a);
+
+  URL.revokeObjectURL(url);
+}
+
+// ===== EVENTS =====
+
+// RANDOM LINE
 
 getLineBtn.addEventListener("click", () => {
 
@@ -189,6 +352,8 @@ getLineBtn.addEventListener("click", () => {
   renderCurrentLine();
 });
 
+// CHANGE LINE
+
 changeLineBtn.addEventListener("click", () => {
 
   currentLineId = randomLineId();
@@ -196,9 +361,14 @@ changeLineBtn.addEventListener("click", () => {
   renderCurrentLine();
 });
 
+// ADD ENTRY
+
 addEntryBtn.addEventListener("click", () => {
 
-  const text = entryInputEl.value.trim();
+  if (!currentLineId) return;
+
+  const text =
+    entryInputEl.value.trim();
 
   if (!text) return;
 
@@ -210,13 +380,27 @@ addEntryBtn.addEventListener("click", () => {
 
   entryInputEl.value = "";
 
+  statusMessageEl.textContent =
+    "Úryvok pridaný";
+
+  setTimeout(() => {
+
+    statusMessageEl.textContent = "";
+
+  }, 1500);
+
   renderCurrentLine();
   renderOverview();
 });
 
+// CREATE SUBLINE
+
 createSublineBtn.addEventListener("click", () => {
 
-  const title = prompt("Názov podlínie");
+  if (!currentLineId) return;
+
+  const title =
+    prompt("Názov podlínie");
 
   if (!title) return;
 
@@ -226,8 +410,11 @@ createSublineBtn.addEventListener("click", () => {
   storyLines[currentLineId]
     .sublines
     .push({
+
       id: "S" + Date.now(),
+
       title,
+
       description
     });
 
@@ -236,6 +423,8 @@ createSublineBtn.addEventListener("click", () => {
   renderCurrentLine();
   renderOverview();
 });
+
+// CREATE LINE
 
 addLineBtn.addEventListener("click", () => {
 
@@ -247,14 +436,21 @@ addLineBtn.addEventListener("click", () => {
 
   if (!persona || !description) return;
 
-  const id = "L" + Date.now();
+  const id =
+    "L" + Date.now();
 
   storyLines[id] = {
+
     id,
+
     name: `Línia – ${persona}`,
+
     persona,
+
     description,
+
     entries: [],
+
     sublines: []
   };
 
@@ -266,11 +462,43 @@ addLineBtn.addEventListener("click", () => {
   renderOverview();
 });
 
+// RESET
+
+resetBtn.addEventListener("click", () => {
+
+  const sure =
+    confirm("Reset?");
+
+  if (!sure) return;
+
+  storyLines = JSON.parse(
+    JSON.stringify(defaultLines)
+  );
+
+  saveOffline();
+
+  currentLineId = null;
+
+  renderCurrentLine();
+  renderOverview();
+});
+
+// DOWNLOAD
+
+downloadBtn.addEventListener(
+  "click",
+  downloadAllStories
+);
+
+// ===== INIT =====
+
 function init() {
 
   loadOffline();
 
   renderOverview();
+
+  renderCurrentLine();
 }
 
 document.addEventListener(
