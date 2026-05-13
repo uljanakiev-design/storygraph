@@ -510,7 +510,7 @@ function downloadAllStories() {
 
 async function resetAllData() {
   const sure = confirm(
-    "Začať odznova?\n\nVšetky lokálne údaje budú vymazané. Ak je zapnutý online režim, vymažú sa aj online údaje."
+    "Začať odznova?\n\nVymažú sa všetky úryvky a podlínie.\nAk je dostupný Firebase, online údaje sa vymažú všetkým používateľom."
   );
 
   if (!sure) return;
@@ -526,12 +526,21 @@ async function resetAllData() {
 
   saveOffline();
 
-  if (syncOnline && firebaseAvailable && db) {
+  if (firebaseAvailable && db) {
     try {
       await hardResetOnlineData();
+
+      statusMessageEl.textContent =
+        "Všetky údaje boli vymazané lokálne aj online pre všetkých používateľov.";
     } catch (e) {
       console.error("Online reset chyba:", e);
+
+      statusMessageEl.textContent =
+        "Lokálne údaje boli vymazané, ale online reset zlyhal.";
     }
+  } else {
+    statusMessageEl.textContent =
+      "Lokálne údaje boli vymazané. Online režim nie je dostupný.";
   }
 
   currentLineId = null;
@@ -539,11 +548,9 @@ async function resetAllData() {
   renderOverview();
   renderCurrentLine();
 
-  statusMessageEl.textContent = "Všetky texty boli vymazané.";
-
   setTimeout(() => {
     statusMessageEl.textContent = "";
-  }, 2500);
+  }, 3000);
 }
 
 function escapeHtml(value) {
