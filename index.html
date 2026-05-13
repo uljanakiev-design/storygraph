@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="sk">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Líniové príbehy</title>
 
   <link rel="stylesheet" href="style.css">
@@ -12,158 +12,269 @@
 </head>
 
 <body>
-  <header class="app-header">
-    <h1>Líniové príbehy</h1>
-    <p class="subtitle">Štafetové kreatívne písanie v paralelných dejových líniách</p>
-  </header>
 
-  <main class="container">
+<header class="app-header">
+  <h1>Líniové príbehy</h1>
 
-    <section class="card">
-      <div class="top-actions-layout">
+  <p class="subtitle">
+    Kreatívne paralelné príbehy s podlíniami
+  </p>
+</header>
 
-        <div class="start-block">
-          <h2>Pokračuj v príbehu</h2>
-          <p>
-            Klikni na tlačidlo nižšie – náhodne sa ti pridelí dejová línia.
-          </p>
+<main class="container">
 
-          <button id="get-line-btn" class="btn primary">
-            Získať líniu
-          </button>
-        </div>
+  <!-- MODE -->
 
-        <div class="create-line-block">
-          <h2>Vytvoriť líniu</h2>
-          <p class="small muted">
-            Pridaj novú dejovú vetvu.
-          </p>
+  <section class="card">
 
-          <div class="new-line-form compact">
-            <div class="field">
-              <label for="persona-select">Postava zo zoznamu</label>
-              <select id="persona-select">
-                <option value="Cestovateľ">Cestovateľ</option>
-                <option value="Pozorovateľ">Pozorovateľ</option>
-                <option value="Vtipkár">Vtipkár</option>
-                <option value="Vedec">Vedec</option>
-                <option value="Skeptik">Skeptik</option>
-                <option value="Snílek">Snílek</option>
-              </select>
-            </div>
+    <div class="section-title-row">
+      <h2>Režim</h2>
 
-            <div class="field">
-              <label for="persona-custom">Alebo vlastná postava</label>
-              <input id="persona-custom" type="text" placeholder="Napríklad: Strážca">
-            </div>
+      <p id="online-indicator" class="small muted">
+        Lokálny režim
+      </p>
+    </div>
 
-            <div class="field">
-              <label for="line-desc-input">Krátky opis línie</label>
-              <input id="line-desc-input" type="text" placeholder="O čom je línia?">
-            </div>
+    <div class="mode-buttons">
 
-            <button id="add-line-btn" class="btn primary">
-              Vytvoriť líniu
-            </button>
-
-            <p id="new-line-status" class="status"></p>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <section id="line-card" class="card">
-      <div class="line-header-row">
-        <div>
-          <h2 id="line-title">Línia nie je vybraná</h2>
-          <p id="line-description" class="desc">
-            Klikni na „Získať líniu“, aby si začal.
-          </p>
-        </div>
-
-        <button id="change-line-btn" class="btn secondary" disabled>
-          Iná línia
-        </button>
-      </div>
-
-      <div class="mode-row">
-        <div>
-          <p id="online-indicator" class="small muted">
-            Režim: lokálny
-          </p>
-        </div>
-
-        <div class="mode-buttons">
-          <button id="offline-mode-btn" class="btn mode-btn active-mode">
-            Lokálne
-          </button>
-
-          <button id="online-mode-btn" class="btn mode-btn">
-            Online
-          </button>
-        </div>
-      </div>
-
-      <h3>Posledné úryvky</h3>
-
-      <div id="entries-list" class="entries empty">
-        <p>Zatiaľ žiadne údaje – vyber si líniu.</p>
-      </div>
-
-      <h3>Tvoje pokračovanie</h3>
-
-      <textarea id="entry-input" placeholder="Napíš pokračovanie..." rows="3"></textarea>
-
-      <button id="add-entry-btn" class="btn primary" disabled>
-        Pridať
+      <button
+        id="offline-mode-btn"
+        class="btn mode-btn active-mode"
+      >
+        Lokálne
       </button>
 
-      <p id="status-message" class="status"></p>
+      <button
+        id="online-mode-btn"
+        class="btn mode-btn"
+      >
+        Online
+      </button>
 
-      <hr class="divider">
+    </div>
 
-      <div class="subline-header">
-        <div>
-          <h3>Podlínie</h3>
-          <p class="small muted">Vedľajšie vetvy aktuálnej línie.</p>
-        </div>
+  </section>
 
-        <button id="create-subline-btn" class="btn secondary small-btn" disabled>
-          Nová podlínia
+  <!-- QUICK ACTIONS -->
+
+  <section class="card">
+
+    <div class="two-columns">
+
+      <!-- RANDOM -->
+
+      <div>
+
+        <h2>Pokračuj v príbehu</h2>
+
+        <p class="muted">
+          Získaš náhodnú dejovú líniu.
+        </p>
+
+        <button
+          id="get-line-btn"
+          class="btn primary"
+        >
+          Náhodná línia
         </button>
+
       </div>
 
-      <div id="sublines-list" class="sublines-list empty">
-        <p>Žiadne podlínie.</p>
-      </div>
-    </section>
+      <!-- CREATE LINE -->
 
-    <section class="card">
-      <div class="card-header-row">
-        <div>
-          <h2>Prehľad línií</h2>
-          <p class="desc">
-            Každá línia sa vyvíja samostatne.
-          </p>
-        </div>
+      <div>
 
-        <div class="card-header-actions">
-          <button id="download-btn" class="btn secondary small-btn">
-            Stiahnuť všetko (.txt)
+        <h2>Nová línia</h2>
+
+        <div class="new-line-form">
+
+          <div class="field">
+            <label>Postava</label>
+
+            <input
+              id="persona-input"
+              type="text"
+              placeholder="Napríklad: Vedec"
+            >
+          </div>
+
+          <div class="field">
+            <label>Opis línie</label>
+
+            <input
+              id="line-description-input"
+              type="text"
+              placeholder="Krátky opis deja"
+            >
+          </div>
+
+          <button
+            id="create-line-btn"
+            class="btn primary"
+          >
+            Vytvoriť líniu
           </button>
 
-          <button id="reset-btn" class="btn secondary small-btn danger-btn">
-            Začať odznova
-          </button>
         </div>
+
       </div>
 
-      <div id="overview-grid" class="grid"></div>
-    </section>
+    </div>
 
-  </main>
+  </section>
 
-  <script src="script.js"></script>
+  <!-- ACTIVE LINE -->
+
+  <section class="card">
+
+    <div class="line-header">
+
+      <div>
+        <h2 id="line-title">
+          Línia nie je vybraná
+        </h2>
+
+        <p
+          id="line-description"
+          class="muted"
+        >
+          Vyber alebo vytvor líniu.
+        </p>
+      </div>
+
+      <button
+        id="change-line-btn"
+        class="btn secondary"
+        disabled
+      >
+        Iná línia
+      </button>
+
+    </div>
+
+    <!-- ENTRIES -->
+
+    <h3>Posledné úryvky</h3>
+
+    <div
+      id="entries-list"
+      class="entries empty"
+    >
+      <p>Zatiaľ bez úryvkov</p>
+    </div>
+
+    <div class="entry-form">
+
+      <textarea
+        id="entry-input"
+        rows="4"
+        placeholder="Napíš pokračovanie..."
+      ></textarea>
+
+      <button
+        id="add-entry-btn"
+        class="btn primary"
+        disabled
+      >
+        Pridať pokračovanie
+      </button>
+
+    </div>
+
+    <p
+      id="status-message"
+      class="status"
+    ></p>
+
+  </section>
+
+  <!-- SUBLINES -->
+
+  <section class="card">
+
+    <div class="section-title-row">
+      <h2>Podlínie</h2>
+    </div>
+
+    <div class="subline-form">
+
+      <div class="field">
+        <label>Názov podlínie</label>
+
+        <input
+          id="subline-title-input"
+          type="text"
+          placeholder="Názov"
+        >
+      </div>
+
+      <div class="field">
+        <label>Opis podlínie</label>
+
+        <input
+          id="subline-description-input"
+          type="text"
+          placeholder="Krátky opis"
+        >
+      </div>
+
+      <button
+        id="create-subline-btn"
+        class="btn secondary"
+        disabled
+      >
+        Vytvoriť podlíniu
+      </button>
+
+    </div>
+
+    <div
+      id="sublines-list"
+      class="sublines-list empty"
+    >
+      <p>Žiadne podlínie</p>
+    </div>
+
+  </section>
+
+  <!-- OVERVIEW -->
+
+  <section class="card">
+
+    <div class="section-title-row">
+
+      <h2>Prehľad línií</h2>
+
+      <div class="overview-actions">
+
+        <button
+          id="download-btn"
+          class="btn secondary"
+        >
+          Export
+        </button>
+
+        <button
+          id="reset-btn"
+          class="btn danger"
+        >
+          Začať odznova
+        </button>
+
+      </div>
+
+    </div>
+
+    <div
+      id="overview-grid"
+      class="grid"
+    ></div>
+
+  </section>
+
+</main>
+
+<script src="script.js"></script>
+
 </body>
 </html>
