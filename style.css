@@ -12,12 +12,31 @@ body {
   padding: 20px;
 }
 
+.app-header {
+  text-align: center;
+  padding: 30px 10px 10px;
+}
+
+.subtitle {
+  color: #6e6e73;
+}
+
 .card {
   background: white;
-  border-radius: 20px;
   padding: 24px;
+  border-radius: 20px;
   margin-bottom: 24px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.line-header-row,
+.card-header-row,
+.subline-header,
+.mode-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 
 .btn {
@@ -25,6 +44,7 @@ body {
   border-radius: 999px;
   padding: 10px 20px;
   cursor: pointer;
+  font-size: 14px;
 }
 
 .btn.primary {
@@ -36,15 +56,32 @@ body {
   background: #e5e5ea;
 }
 
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .small-btn {
   padding: 6px 14px;
 }
 
-.entries {
+.danger-btn {
+  background: #ffe5e5;
+  color: #b00020;
+}
+
+.entries,
+.sublines-list {
   background: #f0f0f3;
   border-radius: 14px;
   padding: 12px;
   margin-bottom: 12px;
+}
+
+.entries.empty,
+.sublines-list.empty {
+  text-align: center;
+  color: #6e6e73;
 }
 
 .entry {
@@ -55,11 +92,21 @@ body {
   border-left: 4px solid #0071e3;
 }
 
+.subline-card {
+  background: white;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-left: 4px solid #34c759;
+}
+
 textarea {
   width: 100%;
   padding: 12px;
   border-radius: 12px;
-  margin-top: 10px;
+  border: 1px solid #d2d2d7;
+  resize: vertical;
+  margin-bottom: 10px;
 }
 
 .grid {
@@ -71,32 +118,8 @@ textarea {
 
 .overview-card {
   background: #fafafa;
-  padding: 14px;
   border-radius: 14px;
-}
-
-.subline-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.sublines-list {
-  margin-top: 12px;
-}
-
-.subline-card {
-  background: #fafafa;
-  border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-left: 4px solid #34c759;
-}
-
-.divider {
-  margin: 20px 0;
-  border: none;
-  border-top: 1px solid #e5e5ea;
+  padding: 14px;
 }
 
 .new-line-form {
@@ -107,10 +130,70 @@ textarea {
 .field {
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
 .field input {
   padding: 10px;
   border-radius: 10px;
   border: 1px solid #d2d2d7;
+}
+
+.divider {
+  margin: 20px 0;
+  border: none;
+  border-top: 1px solid #e5e5ea;
+}
+
+.small {
+  font-size: 13px;
+}
+
+.muted {
+  color: #6e6e73;
+}
+
+.status {
+  color: #6e6e73;
+  font-size: 14px;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+}
+
+.toggle input {
+  display: none;
+}
+
+.toggle-slider {
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: #d2d2d7;
+  position: relative;
+}
+
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  top: 3px;
+  left: 3px;
+}
+
+@media (max-width: 640px) {
+
+  .line-header-row,
+  .card-header-row,
+  .subline-header,
+  .mode-row {
+
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
