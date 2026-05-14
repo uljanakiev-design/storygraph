@@ -18,7 +18,6 @@ try {
   firebase.initializeApp(firebaseConfig);
   db = firebase.firestore();
   firebaseAvailable = true;
-  console.log("Firebase pripojený");
 } catch (e) {
   console.warn("Firebase disabled:", e);
 }
@@ -28,15 +27,47 @@ const defaultLines = {
     id: "A",
     name: "Línia A – Cestovateľ",
     persona: "Cestovateľ",
-    description: "Tajomná cesta do neznáma.",
+    description: "Postava sa vydáva na neznáme miesto.",
     entries: [],
     sublines: []
   },
   B: {
     id: "B",
-    name: "Línia B – Vedec",
-    persona: "Vedec",
-    description: "Experiment sa pokazil.",
+    name: "Línia B – Pozorovateľ",
+    persona: "Pozorovateľ",
+    description: "Postava sleduje zvláštne udalosti z bezpečia domova.",
+    entries: [],
+    sublines: []
+  },
+  C: {
+    id: "C",
+    name: "Línia C – Voda",
+    persona: "Snílek",
+    description: "Postava nachádza pokoj aj tajomstvo pri vode.",
+    entries: [],
+    sublines: []
+  },
+  D: {
+    id: "D",
+    name: "Línia D – Mesto",
+    persona: "Prieskumník",
+    description: "Postava objavuje skryté detaily mesta.",
+    entries: [],
+    sublines: []
+  },
+  E: {
+    id: "E",
+    name: "Línia E – Minulosť",
+    persona: "Strážca",
+    description: "Minulosť postupne vysvetľuje súčasné udalosti.",
+    entries: [],
+    sublines: []
+  },
+  F: {
+    id: "F",
+    name: "Línia F – Nečakaná správa",
+    persona: "Skeptik",
+    description: "Postava dostane správu, ktorej nechce veriť.",
     entries: [],
     sublines: []
   }
@@ -45,7 +76,7 @@ const defaultLines = {
 let storyLines = {};
 let currentLineId = null;
 
-const STORAGE_KEY = "story_lines_clean_ui_online_v2";
+const STORAGE_KEY = "story_lines_story_ui_v1";
 
 const getLineBtn = document.getElementById("get-line-btn");
 const changeLineBtn = document.getElementById("change-line-btn");
@@ -117,11 +148,11 @@ function updateModeUI() {
   if (syncOnline) {
     onlineModeBtn.classList.add("active-mode");
     offlineModeBtn.classList.remove("active-mode");
-    onlineIndicatorEl.textContent = "Online režim — údaje sa synchronizujú medzi zariadeniami";
+    onlineIndicatorEl.textContent = "Online režim — spoločné písanie na viacerých zariadeniach";
   } else {
     offlineModeBtn.classList.add("active-mode");
     onlineModeBtn.classList.remove("active-mode");
-    onlineIndicatorEl.textContent = "Lokálny režim — údaje sú len v tomto zariadení";
+    onlineIndicatorEl.textContent = "Lokálny režim — text je len v tomto zariadení";
   }
 }
 
@@ -150,8 +181,6 @@ function setOnlineMode() {
 }
 
 async function seedFirestoreDefaults() {
-  if (!db) return;
-
   const batch = db.batch();
 
   Object.values(defaultLines).forEach(line => {
@@ -220,17 +249,13 @@ function subscribeFirestore() {
 }
 
 async function addEntryOnline(lineId, text) {
-  const ref = db.collection("lines").doc(lineId);
-
-  await ref.update({
+  await db.collection("lines").doc(lineId).update({
     entries: firebase.firestore.FieldValue.arrayUnion(text)
   });
 }
 
 async function addLineOnline(line) {
-  const ref = db.collection("lines").doc(line.id);
-
-  await ref.set({
+  await db.collection("lines").doc(line.id).set({
     name: line.name,
     persona: line.persona,
     description: line.description,
@@ -241,9 +266,7 @@ async function addLineOnline(line) {
 }
 
 async function addSublineOnline(lineId, subline) {
-  const ref = db.collection("lines").doc(lineId);
-
-  await ref.update({
+  await db.collection("lines").doc(lineId).update({
     sublines: firebase.firestore.FieldValue.arrayUnion(subline)
   });
 }
@@ -255,13 +278,16 @@ async function resetOnlineForEveryone() {
   const batch = db.batch();
 
   snapshot.forEach(doc => {
-    const template = defaultLines[doc.id];
-    const data = doc.data();
+    batch.delete(doc.ref);
+  });
 
-    batch.set(doc.ref, {
-      name: template ? template.name : data.name || "Bez názvu",
-      persona: template ? template.persona : data.persona || "",
-      description: template ? template.description : data.description || "",
+  Object.values(defaultLines).forEach(line => {
+    const ref = db.collection("lines").doc(line.id);
+
+    batch.set(ref, {
+      name: line.name,
+      persona: line.persona,
+      description: line.description,
       entries: [],
       sublines: [],
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -273,7 +299,6 @@ async function resetOnlineForEveryone() {
 
 function randomLineId() {
   const ids = Object.keys(storyLines);
-
   if (!ids.length) return null;
 
   return ids[Math.floor(Math.random() * ids.length)];
@@ -285,10 +310,10 @@ function renderCurrentLine() {
     lineDescriptionEl.textContent = "Vyber alebo vytvor líniu.";
 
     entriesListEl.classList.add("empty");
-    entriesListEl.innerHTML = "<p>Zatiaľ bez úryvkov</p>";
+    entriesListEl.innerHTML = "<p>Zatiaľ bez textu.</p>";
 
     sublinesListEl.classList.add("empty");
-    sublinesListEl.innerHTML = "<p>Žiadne podlínie</p>";
+    sublinesListEl.innerHTML = "<p>Žiadne podlínie.</p>";
 
     addEntryBtn.disabled = true;
     changeLineBtn.disabled = true;
@@ -315,17 +340,22 @@ function renderEntries(line) {
 
   if (!line.entries.length) {
     entriesListEl.classList.add("empty");
-    entriesListEl.innerHTML = "<p>Zatiaľ bez úryvkov</p>";
+    entriesListEl.innerHTML = "<p>Zatiaľ bez textu. Začni písať prvú časť.</p>";
     return;
   }
 
   entriesListEl.classList.remove("empty");
 
-  line.entries.slice(-5).forEach(text => {
-    const div = document.createElement("div");
-    div.className = "entry";
-    div.textContent = text;
-    entriesListEl.appendChild(div);
+  line.entries.forEach((text, index) => {
+    const paragraph = document.createElement("p");
+    paragraph.className = "story-paragraph";
+    paragraph.textContent = text;
+
+    if (index === 0) {
+      paragraph.classList.add("first");
+    }
+
+    entriesListEl.appendChild(paragraph);
   });
 }
 
@@ -334,7 +364,7 @@ function renderSublines(line) {
 
   if (!line.sublines.length) {
     sublinesListEl.classList.add("empty");
-    sublinesListEl.innerHTML = "<p>Žiadne podlínie</p>";
+    sublinesListEl.innerHTML = "<p>Žiadne podlínie.</p>";
     return;
   }
 
@@ -361,28 +391,34 @@ function renderOverview() {
   overviewGridEl.innerHTML = "";
 
   Object.values(storyLines).forEach(line => {
-    const card = document.createElement("div");
+    const card = document.createElement("button");
     card.className = "overview-card";
+    card.type = "button";
+
+    if (line.id === currentLineId) {
+      card.classList.add("selected");
+    }
+
+    card.addEventListener("click", () => {
+      currentLineId = line.id;
+      renderCurrentLine();
+      renderOverview();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
 
     const title = document.createElement("h3");
     title.textContent = line.name;
 
-    const persona = document.createElement("p");
-    persona.className = "muted";
-    persona.textContent = "Postava: " + line.persona;
+    const meta = document.createElement("p");
+    meta.className = "muted";
+    meta.textContent = `${line.entries.length} častí · ${line.sublines.length} podlínií`;
 
-    const entries = document.createElement("p");
-    entries.className = "muted";
-    entries.textContent = "Úryvky: " + line.entries.length;
-
-    const sublines = document.createElement("p");
-    sublines.className = "muted";
-    sublines.textContent = "Podlínie: " + line.sublines.length;
+    const desc = document.createElement("p");
+    desc.textContent = line.description;
 
     card.appendChild(title);
-    card.appendChild(persona);
-    card.appendChild(entries);
-    card.appendChild(sublines);
+    card.appendChild(meta);
+    card.appendChild(desc);
 
     overviewGridEl.appendChild(card);
   });
@@ -392,7 +428,6 @@ async function addEntry() {
   if (!currentLineId) return;
 
   const text = entryInputEl.value.trim();
-
   if (!text) return;
 
   if (syncOnline && firebaseAvailable && db) {
@@ -411,7 +446,7 @@ async function addEntry() {
   }
 
   entryInputEl.value = "";
-  statusMessageEl.textContent = "Úryvok pridaný";
+  statusMessageEl.textContent = "Text bol pridaný.";
 
   setTimeout(() => {
     statusMessageEl.textContent = "";
@@ -422,7 +457,10 @@ async function createLine() {
   const persona = personaInputEl.value.trim();
   const description = lineDescriptionInputEl.value.trim();
 
-  if (!persona || !description) return;
+  if (!persona || !description) {
+    alert("Vyplň postavu aj opis línie.");
+    return;
+  }
 
   const id = "L" + Date.now();
 
@@ -446,7 +484,6 @@ async function createLine() {
   } else {
     storyLines[id] = line;
     saveOffline();
-    renderOverview();
   }
 
   currentLineId = id;
@@ -455,6 +492,7 @@ async function createLine() {
   lineDescriptionInputEl.value = "";
 
   renderCurrentLine();
+  renderOverview();
 }
 
 async function createSubline() {
@@ -463,7 +501,10 @@ async function createSubline() {
   const title = sublineTitleInputEl.value.trim();
   const description = sublineDescriptionInputEl.value.trim();
 
-  if (!title) return;
+  if (!title) {
+    alert("Zadaj názov podlínie.");
+    return;
+  }
 
   const subline = {
     id: "S" + Date.now(),
@@ -492,7 +533,7 @@ async function createSubline() {
 
 async function resetAll() {
   const sure = confirm(
-    "Začať odznova?\n\nVymažú sa lokálne údaje aj online údaje pre všetkých používateľov."
+    "Začať odznova?\n\nVymažú sa všetky vytvorené línie, texty aj podlínie. Online údaje sa vymažú všetkým používateľom."
   );
 
   if (!sure) return;
@@ -529,15 +570,15 @@ function exportStories() {
     content += `Postava: ${line.persona}\n`;
     content += `Opis: ${line.description}\n\n`;
 
-    content += "Úryvky:\n";
+    content += "TEXT:\n";
     line.entries.forEach((entry, index) => {
-      content += `${index + 1}. ${entry}\n`;
+      content += `${index + 1}. ${entry}\n\n`;
     });
 
-    content += "\nPodlínie:\n";
+    content += "PODLÍNIE:\n";
     line.sublines.forEach((subline, index) => {
       content += `${index + 1}. ${subline.title}\n`;
-      content += `${subline.description}\n`;
+      content += `${subline.description}\n\n`;
     });
 
     content += "\n-----------------\n\n";
@@ -551,7 +592,7 @@ function exportStories() {
   const a = document.createElement("a");
 
   a.href = url;
-  a.download = "stories.txt";
+  a.download = "liniovy_pribeh.txt";
 
   document.body.appendChild(a);
   a.click();
@@ -563,11 +604,13 @@ function exportStories() {
 getLineBtn.addEventListener("click", () => {
   currentLineId = randomLineId();
   renderCurrentLine();
+  renderOverview();
 });
 
 changeLineBtn.addEventListener("click", () => {
   currentLineId = randomLineId();
   renderCurrentLine();
+  renderOverview();
 });
 
 addEntryBtn.addEventListener("click", addEntry);
