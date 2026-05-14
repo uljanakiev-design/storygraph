@@ -18,6 +18,7 @@ try {
   firebase.initializeApp(firebaseConfig);
   db = firebase.firestore();
   firebaseAvailable = true;
+  console.log("Firebase pripojený");
 } catch (e) {
   console.warn("Firebase disabled:", e);
 }
@@ -76,7 +77,7 @@ const defaultLines = {
 let storyLines = {};
 let currentLineId = null;
 
-const STORAGE_KEY = "story_lines_story_ui_v1";
+const STORAGE_KEY = "story_lines_final_v1";
 
 const getLineBtn = document.getElementById("get-line-btn");
 const changeLineBtn = document.getElementById("change-line-btn");
@@ -148,11 +149,13 @@ function updateModeUI() {
   if (syncOnline) {
     onlineModeBtn.classList.add("active-mode");
     offlineModeBtn.classList.remove("active-mode");
-    onlineIndicatorEl.textContent = "Online režim — spoločné písanie na viacerých zariadeniach";
+    onlineIndicatorEl.textContent =
+      "Online režim — spoločné písanie na viacerých zariadeniach";
   } else {
     offlineModeBtn.classList.add("active-mode");
     onlineModeBtn.classList.remove("active-mode");
-    onlineIndicatorEl.textContent = "Lokálny režim — text je len v tomto zariadení";
+    onlineIndicatorEl.textContent =
+      "Lokálny režim — text je len v tomto zariadení";
   }
 }
 
@@ -275,16 +278,21 @@ async function resetOnlineForEveryone() {
   if (!db) return;
 
   const snapshot = await db.collection("lines").get();
-  const batch = db.batch();
+
+  const deleteBatch = db.batch();
 
   snapshot.forEach(doc => {
-    batch.delete(doc.ref);
+    deleteBatch.delete(doc.ref);
   });
+
+  await deleteBatch.commit();
+
+  const createBatch = db.batch();
 
   Object.values(defaultLines).forEach(line => {
     const ref = db.collection("lines").doc(line.id);
 
-    batch.set(ref, {
+    createBatch.set(ref, {
       name: line.name,
       persona: line.persona,
       description: line.description,
@@ -294,11 +302,12 @@ async function resetOnlineForEveryone() {
     });
   });
 
-  await batch.commit();
+  await createBatch.commit();
 }
 
 function randomLineId() {
   const ids = Object.keys(storyLines);
+
   if (!ids.length) return null;
 
   return ids[Math.floor(Math.random() * ids.length)];
@@ -348,6 +357,7 @@ function renderEntries(line) {
 
   line.entries.forEach((text, index) => {
     const paragraph = document.createElement("p");
+
     paragraph.className = "story-paragraph";
     paragraph.textContent = text;
 
@@ -392,6 +402,7 @@ function renderOverview() {
 
   Object.values(storyLines).forEach(line => {
     const card = document.createElement("button");
+
     card.className = "overview-card";
     card.type = "button";
 
@@ -403,7 +414,11 @@ function renderOverview() {
       currentLineId = line.id;
       renderCurrentLine();
       renderOverview();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      document.querySelector(".story-card").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
     });
 
     const title = document.createElement("h3");
@@ -428,7 +443,11 @@ async function addEntry() {
   if (!currentLineId) return;
 
   const text = entryInputEl.value.trim();
-  if (!text) return;
+
+  if (!text) {
+    alert("Napíš text pokračovania.");
+    return;
+  }
 
   if (syncOnline && firebaseAvailable && db) {
     try {
@@ -538,28 +557,40 @@ async function resetAll() {
 
   if (!sure) return;
 
-  storyLines = clone(defaultLines);
+  resetBtn.disabled = true;
+  resetBtn.textContent = "Čistím...";
 
-  Object.values(storyLines).forEach(line => {
-    line.entries = [];
-    line.sublines = [];
-  });
+  try {
+    storyLines = clone(defaultLines);
 
-  saveOffline();
+    Object.values(storyLines).forEach(line => {
+      line.entries = [];
+      line.sublines = [];
+    });
 
-  if (firebaseAvailable && db) {
-    try {
+    saveOffline();
+
+    if (firebaseAvailable && db) {
       await resetOnlineForEveryone();
-    } catch (e) {
-      console.error(e);
-      alert("Lokálne údaje boli vymazané, ale online reset zlyhal.");
     }
+
+    currentLineId = null;
+
+    renderCurrentLine();
+    renderOverview();
+
+    statusMessageEl.textContent = "Všetko bolo vymazané.";
+  } catch (e) {
+    console.error(e);
+    alert("Reset zlyhal. Skontroluj Firebase pravidlá.");
+  } finally {
+    resetBtn.disabled = false;
+    resetBtn.textContent = "Začať odznova";
+
+    setTimeout(() => {
+      statusMessageEl.textContent = "";
+    }, 2000);
   }
-
-  currentLineId = null;
-
-  renderCurrentLine();
-  renderOverview();
 }
 
 function exportStories() {
@@ -571,15 +602,25 @@ function exportStories() {
     content += `Opis: ${line.description}\n\n`;
 
     content += "TEXT:\n";
-    line.entries.forEach((entry, index) => {
-      content += `${index + 1}. ${entry}\n\n`;
-    });
+
+    if (!line.entries.length) {
+      content += "Bez textu.\n\n";
+    } else {
+      line.entries.forEach((entry, index) => {
+        content += `${index + 1}. ${entry}\n\n`;
+      });
+    }
 
     content += "PODLÍNIE:\n";
-    line.sublines.forEach((subline, index) => {
-      content += `${index + 1}. ${subline.title}\n`;
-      content += `${subline.description}\n\n`;
-    });
+
+    if (!line.sublines.length) {
+      content += "Bez podlínií.\n";
+    } else {
+      line.sublines.forEach((subline, index) => {
+        content += `${index + 1}. ${subline.title}\n`;
+        content += `${subline.description}\n\n`;
+      });
+    }
 
     content += "\n-----------------\n\n";
   });
