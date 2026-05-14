@@ -13,12 +13,12 @@ let firebaseAvailable = false;
 let syncOnline = false;
 let firestoreUnsubscribe = null;
 let seeded = false;
+let currentUserName = "";
 
 try {
   firebase.initializeApp(firebaseConfig);
   db = firebase.firestore();
   firebaseAvailable = true;
-  console.log("Firebase pripojený");
 } catch (e) {
   console.warn("Firebase disabled:", e);
 }
@@ -32,43 +32,21 @@ const defaultLines = {
     entries: [],
     sublines: []
   },
+
   B: {
     id: "B",
     name: "Línia B – Pozorovateľ",
     persona: "Pozorovateľ",
-    description: "Postava sleduje zvláštne udalosti z bezpečia domova.",
+    description: "Postava sleduje zvláštne udalosti.",
     entries: [],
     sublines: []
   },
+
   C: {
     id: "C",
-    name: "Línia C – Voda",
-    persona: "Snílek",
-    description: "Postava nachádza pokoj aj tajomstvo pri vode.",
-    entries: [],
-    sublines: []
-  },
-  D: {
-    id: "D",
-    name: "Línia D – Mesto",
+    name: "Línia C – Mesto",
     persona: "Prieskumník",
-    description: "Postava objavuje skryté detaily mesta.",
-    entries: [],
-    sublines: []
-  },
-  E: {
-    id: "E",
-    name: "Línia E – Minulosť",
-    persona: "Strážca",
-    description: "Minulosť postupne vysvetľuje súčasné udalosti.",
-    entries: [],
-    sublines: []
-  },
-  F: {
-    id: "F",
-    name: "Línia F – Nečakaná správa",
-    persona: "Skeptik",
-    description: "Postava dostane správu, ktorej nechce veriť.",
+    description: "Skryté detaily mesta.",
     entries: [],
     sublines: []
   }
@@ -77,7 +55,10 @@ const defaultLines = {
 let storyLines = {};
 let currentLineId = null;
 
-const STORAGE_KEY = "story_lines_final_v1";
+const STORAGE_KEY = "story_lines_final";
+const USER_NAME_KEY = "story_user_name";
+
+// DOM
 
 const getLineBtn = document.getElementById("get-line-btn");
 const changeLineBtn = document.getElementById("change-line-btn");
@@ -100,70 +81,153 @@ const statusMessageEl = document.getElementById("status-message");
 
 const personaInputEl = document.getElementById("persona-input");
 const lineDescriptionInputEl = document.getElementById("line-description-input");
+
 const sublineTitleInputEl = document.getElementById("subline-title-input");
 const sublineDescriptionInputEl = document.getElementById("subline-description-input");
+
+const userNameInputEl = document.getElementById("user-name-input");
+
+// HELPERS
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function normalizeEntry(entry) {
+
+  if (typeof entry === "string") {
+
+    return {
+      id: "old-" + Math.random(),
+      text: entry,
+      author: "",
+      createdAt: 0
+    };
+  }
+
+  return {
+    id: entry.id || "E" + Date.now(),
+    text: entry.text || "",
+    author: entry.author || "",
+    createdAt: entry.createdAt || 0
+  };
+}
+
 function normalizeLine(line) {
+
   return {
     id: line.id,
     name: line.name || "Bez názvu",
     persona: line.persona || "",
     description: line.description || "",
-    entries: Array.isArray(line.entries) ? line.entries : [],
-    sublines: Array.isArray(line.sublines) ? line.sublines : [],
+    entries: Array.isArray(line.entries)
+      ? line.entries.map(normalizeEntry)
+      : [],
+    sublines: Array.isArray(line.sublines)
+      ? line.sublines
+      : [],
     createdAt: line.createdAt || null
   };
 }
 
+// STORAGE
+
 function saveOffline() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(storyLines));
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(storyLines)
+  );
 }
 
 function loadOffline() {
-  const saved = localStorage.getItem(STORAGE_KEY);
+
+  const saved =
+    localStorage.getItem(STORAGE_KEY);
 
   if (saved) {
-    const parsed = JSON.parse(saved);
+
+    const parsed =
+      JSON.parse(saved);
+
     storyLines = {};
 
-    Object.values(parsed).forEach(line => {
-      storyLines[line.id] = normalizeLine(line);
-    });
+    Object.values(parsed)
+      .forEach(line => {
+
+        storyLines[line.id] =
+          normalizeLine(line);
+      });
 
     return;
   }
 
   storyLines = {};
-  Object.values(defaultLines).forEach(line => {
-    storyLines[line.id] = normalizeLine(clone(line));
-  });
+
+  Object.values(defaultLines)
+    .forEach(line => {
+
+      storyLines[line.id] =
+        normalizeLine(clone(line));
+    });
 
   saveOffline();
 }
 
+// USER
+
+function loadUserName() {
+
+  currentUserName =
+    localStorage.getItem(USER_NAME_KEY)
+    || "";
+
+  userNameInputEl.value =
+    currentUserName;
+}
+
+function saveUserName() {
+
+  currentUserName =
+    userNameInputEl.value.trim();
+
+  localStorage.setItem(
+    USER_NAME_KEY,
+    currentUserName
+  );
+}
+
+// MODE
+
 function updateModeUI() {
+
   if (syncOnline) {
+
     onlineModeBtn.classList.add("active-mode");
+
     offlineModeBtn.classList.remove("active-mode");
+
     onlineIndicatorEl.textContent =
-      "Online režim — spoločné písanie na viacerých zariadeniach";
+      `Online režim — píšeš ako ${currentUserName}`;
+
   } else {
+
     offlineModeBtn.classList.add("active-mode");
+
     onlineModeBtn.classList.remove("active-mode");
+
     onlineIndicatorEl.textContent =
-      "Lokálny režim — text je len v tomto zariadení";
+      "Lokálny režim";
   }
 }
 
 function setOfflineMode() {
+
   syncOnline = false;
 
   if (firestoreUnsubscribe) {
+
     firestoreUnsubscribe();
+
     firestoreUnsubscribe = null;
   }
 
@@ -171,317 +235,531 @@ function setOfflineMode() {
 }
 
 function setOnlineMode() {
+
+  saveUserName();
+
+  if (!currentUserName) {
+
+    alert("Najprv vyplň svoje meno.");
+
+    userNameInputEl.focus();
+
+    return;
+  }
+
   if (!firebaseAvailable || !db) {
+
     alert("Firebase nie je dostupný.");
-    syncOnline = false;
-    updateModeUI();
+
     return;
   }
 
   syncOnline = true;
+
   updateModeUI();
+
   subscribeFirestore();
 }
 
+// FIRESTORE
+
 async function seedFirestoreDefaults() {
+
   const batch = db.batch();
 
-  Object.values(defaultLines).forEach(line => {
-    const ref = db.collection("lines").doc(line.id);
+  Object.values(defaultLines)
+    .forEach(line => {
 
-    batch.set(ref, {
-      name: line.name,
-      persona: line.persona,
-      description: line.description,
-      entries: [],
-      sublines: [],
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      const ref =
+        db.collection("lines")
+          .doc(line.id);
+
+      batch.set(ref, {
+        name: line.name,
+        persona: line.persona,
+        description: line.description,
+        entries: [],
+        sublines: [],
+        createdAt:
+          firebase.firestore.FieldValue.serverTimestamp()
+      });
     });
-  });
 
   await batch.commit();
 }
 
 function subscribeFirestore() {
+
   if (!db) return;
 
   if (firestoreUnsubscribe) {
+
     firestoreUnsubscribe();
+
     firestoreUnsubscribe = null;
   }
 
-  firestoreUnsubscribe = db
-    .collection("lines")
-    .orderBy("createdAt", "asc")
-    .onSnapshot(
-      async snapshot => {
-        if (snapshot.empty && !seeded) {
-          seeded = true;
-          await seedFirestoreDefaults();
-          return;
-        }
+  firestoreUnsubscribe =
+    db.collection("lines")
+      .orderBy("createdAt", "asc")
+      .onSnapshot(
+        async snapshot => {
 
-        const result = {};
+          if (snapshot.empty && !seeded) {
 
-        snapshot.forEach(doc => {
-          const data = doc.data();
+            seeded = true;
 
-          result[doc.id] = normalizeLine({
-            id: doc.id,
-            name: data.name,
-            persona: data.persona,
-            description: data.description,
-            entries: data.entries,
-            sublines: data.sublines,
-            createdAt: data.createdAt
+            await seedFirestoreDefaults();
+
+            return;
+          }
+
+          const result = {};
+
+          snapshot.forEach(doc => {
+
+            const data = doc.data();
+
+            result[doc.id] =
+              normalizeLine({
+                id: doc.id,
+                name: data.name,
+                persona: data.persona,
+                description: data.description,
+                entries: data.entries,
+                sublines: data.sublines,
+                createdAt: data.createdAt
+              });
           });
-        });
 
-        storyLines = result;
-        saveOffline();
+          storyLines = result;
 
-        renderOverview();
-        renderCurrentLine();
-      },
-      error => {
-        console.error("Firestore error:", error);
-        alert("Chyba online synchronizácie.");
-        setOfflineMode();
-      }
-    );
+          saveOffline();
+
+          renderOverview();
+          renderCurrentLine();
+        }
+      );
 }
 
-async function addEntryOnline(lineId, text) {
-  await db.collection("lines").doc(lineId).update({
-    entries: firebase.firestore.FieldValue.arrayUnion(text)
-  });
+// ONLINE SAVE
+
+async function addEntryOnline(lineId, entry) {
+
+  await db.collection("lines")
+    .doc(lineId)
+    .update({
+
+      entries:
+        firebase.firestore.FieldValue.arrayUnion(entry)
+    });
 }
 
 async function addLineOnline(line) {
-  await db.collection("lines").doc(line.id).set({
-    name: line.name,
-    persona: line.persona,
-    description: line.description,
-    entries: [],
-    sublines: [],
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
-}
 
-async function addSublineOnline(lineId, subline) {
-  await db.collection("lines").doc(lineId).update({
-    sublines: firebase.firestore.FieldValue.arrayUnion(subline)
-  });
-}
+  await db.collection("lines")
+    .doc(line.id)
+    .set({
 
-async function resetOnlineForEveryone() {
-  if (!db) return;
-
-  const snapshot = await db.collection("lines").get();
-
-  const deleteBatch = db.batch();
-
-  snapshot.forEach(doc => {
-    deleteBatch.delete(doc.ref);
-  });
-
-  await deleteBatch.commit();
-
-  const createBatch = db.batch();
-
-  Object.values(defaultLines).forEach(line => {
-    const ref = db.collection("lines").doc(line.id);
-
-    createBatch.set(ref, {
       name: line.name,
       persona: line.persona,
       description: line.description,
       entries: [],
       sublines: [],
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      createdAt:
+        firebase.firestore.FieldValue.serverTimestamp()
     });
+}
+
+async function addSublineOnline(lineId, subline) {
+
+  await db.collection("lines")
+    .doc(lineId)
+    .update({
+
+      sublines:
+        firebase.firestore.FieldValue.arrayUnion(subline)
+    });
+}
+
+// RESET
+
+async function resetOnlineForEveryone() {
+
+  const snapshot =
+    await db.collection("lines").get();
+
+  const deleteBatch =
+    db.batch();
+
+  snapshot.forEach(doc => {
+
+    deleteBatch.delete(doc.ref);
   });
+
+  await deleteBatch.commit();
+
+  const createBatch =
+    db.batch();
+
+  Object.values(defaultLines)
+    .forEach(line => {
+
+      const ref =
+        db.collection("lines")
+          .doc(line.id);
+
+      createBatch.set(ref, {
+        name: line.name,
+        persona: line.persona,
+        description: line.description,
+        entries: [],
+        sublines: [],
+        createdAt:
+          firebase.firestore.FieldValue.serverTimestamp()
+      });
+    });
 
   await createBatch.commit();
 }
 
+// RENDER
+
 function randomLineId() {
-  const ids = Object.keys(storyLines);
+
+  const ids =
+    Object.keys(storyLines);
 
   if (!ids.length) return null;
 
-  return ids[Math.floor(Math.random() * ids.length)];
+  return ids[
+    Math.floor(Math.random() * ids.length)
+  ];
 }
 
 function renderCurrentLine() {
-  if (!currentLineId || !storyLines[currentLineId]) {
-    lineTitleEl.textContent = "Línia nie je vybraná";
-    lineDescriptionEl.textContent = "Vyber alebo vytvor líniu.";
+
+  if (
+    !currentLineId ||
+    !storyLines[currentLineId]
+  ) {
+
+    lineTitleEl.textContent =
+      "Línia nie je vybraná";
+
+    lineDescriptionEl.textContent =
+      "Vyber alebo vytvor líniu.";
 
     entriesListEl.classList.add("empty");
-    entriesListEl.innerHTML = "<p>Zatiaľ bez textu.</p>";
+
+    entriesListEl.innerHTML =
+      "<p>Zatiaľ bez textu.</p>";
 
     sublinesListEl.classList.add("empty");
-    sublinesListEl.innerHTML = "<p>Žiadne podlínie.</p>";
+
+    sublinesListEl.innerHTML =
+      "<p>Žiadne podlínie.</p>";
 
     addEntryBtn.disabled = true;
-    changeLineBtn.disabled = true;
     createSublineBtn.disabled = true;
+    changeLineBtn.disabled = true;
 
     return;
   }
 
-  const line = storyLines[currentLineId];
+  const line =
+    storyLines[currentLineId];
 
-  lineTitleEl.textContent = line.name;
-  lineDescriptionEl.textContent = line.description;
+  lineTitleEl.textContent =
+    line.name;
+
+  lineDescriptionEl.textContent =
+    line.description;
 
   renderEntries(line);
   renderSublines(line);
 
   addEntryBtn.disabled = false;
-  changeLineBtn.disabled = false;
   createSublineBtn.disabled = false;
+  changeLineBtn.disabled = false;
 }
 
 function renderEntries(line) {
+
   entriesListEl.innerHTML = "";
 
   if (!line.entries.length) {
+
     entriesListEl.classList.add("empty");
-    entriesListEl.innerHTML = "<p>Zatiaľ bez textu. Začni písať prvú časť.</p>";
+
+    entriesListEl.innerHTML =
+      "<p>Zatiaľ bez textu.</p>";
+
     return;
   }
 
   entriesListEl.classList.remove("empty");
 
-  line.entries.forEach((text, index) => {
-    const paragraph = document.createElement("p");
+  line.entries.forEach((entry, index) => {
 
-    paragraph.className = "story-paragraph";
-    paragraph.textContent = text;
+    const block =
+      document.createElement("div");
+
+    block.className =
+      "story-block";
+
+    const paragraph =
+      document.createElement("p");
+
+    paragraph.className =
+      "story-paragraph";
+
+    paragraph.textContent =
+      entry.text;
 
     if (index === 0) {
       paragraph.classList.add("first");
     }
 
-    entriesListEl.appendChild(paragraph);
+    const meta =
+      document.createElement("p");
+
+    meta.className =
+      "author-line";
+
+    meta.textContent =
+      entry.author
+        ? `Autor: ${entry.author}`
+        : "Autor: neznámy";
+
+    block.appendChild(paragraph);
+    block.appendChild(meta);
+
+    entriesListEl.appendChild(block);
   });
 }
 
 function renderSublines(line) {
+
   sublinesListEl.innerHTML = "";
 
   if (!line.sublines.length) {
+
     sublinesListEl.classList.add("empty");
-    sublinesListEl.innerHTML = "<p>Žiadne podlínie.</p>";
+
+    sublinesListEl.innerHTML =
+      "<p>Žiadne podlínie. Zatiaľ sa príbeh nerozvetvil.</p>";
+
     return;
   }
 
   sublinesListEl.classList.remove("empty");
 
-  line.sublines.forEach(sub => {
-    const card = document.createElement("div");
-    card.className = "subline-card";
+  const intro =
+    document.createElement("p");
 
-    const title = document.createElement("h4");
-    title.textContent = sub.title;
+  intro.className =
+    "subline-intro";
 
-    const description = document.createElement("p");
-    description.textContent = sub.description || "";
+  intro.textContent =
+    "Príbeh sa môže ďalej rozvíjať týmito smermi:";
 
-    card.appendChild(title);
-    card.appendChild(description);
+  sublinesListEl.appendChild(intro);
 
-    sublinesListEl.appendChild(card);
+  line.sublines.forEach((sub, index) => {
+
+    const branch =
+      document.createElement("div");
+
+    branch.className =
+      "story-branch";
+
+    const number =
+      document.createElement("div");
+
+    number.className =
+      "branch-number";
+
+    number.textContent =
+      (index + 1) + ".";
+
+    const content =
+      document.createElement("div");
+
+    content.className =
+      "branch-content";
+
+    const title =
+      document.createElement("h4");
+
+    title.className =
+      "branch-title";
+
+    title.textContent =
+      sub.title;
+
+    const description =
+      document.createElement("p");
+
+    description.className =
+      "branch-description";
+
+    description.textContent =
+      sub.description || "";
+
+    content.appendChild(title);
+    content.appendChild(description);
+
+    if (sub.author) {
+
+      const author =
+        document.createElement("p");
+
+      author.className =
+        "branch-author";
+
+      author.textContent =
+        "Vetvu vytvoril: " + sub.author;
+
+      content.appendChild(author);
+    }
+
+    branch.appendChild(number);
+    branch.appendChild(content);
+
+    sublinesListEl.appendChild(branch);
   });
 }
 
 function renderOverview() {
+
   overviewGridEl.innerHTML = "";
 
-  Object.values(storyLines).forEach(line => {
-    const card = document.createElement("button");
+  Object.values(storyLines)
+    .forEach(line => {
 
-    card.className = "overview-card";
-    card.type = "button";
+      const card =
+        document.createElement("button");
 
-    if (line.id === currentLineId) {
-      card.classList.add("selected");
-    }
+      card.className =
+        "overview-card";
 
-    card.addEventListener("click", () => {
-      currentLineId = line.id;
-      renderCurrentLine();
-      renderOverview();
+      card.type = "button";
 
-      document.querySelector(".story-card").scrollIntoView({
-        behavior: "smooth",
-        block: "start"
+      if (line.id === currentLineId) {
+        card.classList.add("selected");
+      }
+
+      card.addEventListener("click", () => {
+
+        currentLineId =
+          line.id;
+
+        renderCurrentLine();
+        renderOverview();
+
+        document.querySelector(".story-card")
+          .scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
       });
+
+      card.innerHTML = `
+        <h3>${line.name}</h3>
+
+        <p class="muted">
+          ${line.entries.length} častí ·
+          ${line.sublines.length} podlínií
+        </p>
+
+        <p>${line.description}</p>
+      `;
+
+      overviewGridEl.appendChild(card);
     });
-
-    const title = document.createElement("h3");
-    title.textContent = line.name;
-
-    const meta = document.createElement("p");
-    meta.className = "muted";
-    meta.textContent = `${line.entries.length} častí · ${line.sublines.length} podlínií`;
-
-    const desc = document.createElement("p");
-    desc.textContent = line.description;
-
-    card.appendChild(title);
-    card.appendChild(meta);
-    card.appendChild(desc);
-
-    overviewGridEl.appendChild(card);
-  });
 }
 
+// ACTIONS
+
 async function addEntry() {
+
   if (!currentLineId) return;
 
-  const text = entryInputEl.value.trim();
+  const text =
+    entryInputEl.value.trim();
 
   if (!text) {
+
     alert("Napíš text pokračovania.");
+
     return;
   }
 
-  if (syncOnline && firebaseAvailable && db) {
-    try {
-      await addEntryOnline(currentLineId, text);
-    } catch (e) {
-      console.error(e);
-      alert("Nepodarilo sa uložiť online.");
+  saveUserName();
+
+  const entry = {
+    id: "E" + Date.now(),
+    text,
+    author: currentUserName || "",
+    createdAt: Date.now()
+  };
+
+  if (syncOnline) {
+
+    if (!currentUserName) {
+
+      alert("Vyplň meno.");
+
       return;
     }
+
+    await addEntryOnline(
+      currentLineId,
+      entry
+    );
+
   } else {
-    storyLines[currentLineId].entries.push(text);
+
+    storyLines[currentLineId]
+      .entries
+      .push(entry);
+
     saveOffline();
+
     renderCurrentLine();
     renderOverview();
   }
 
   entryInputEl.value = "";
-  statusMessageEl.textContent = "Text bol pridaný.";
+
+  statusMessageEl.textContent =
+    "Text bol pridaný.";
 
   setTimeout(() => {
+
     statusMessageEl.textContent = "";
+
   }, 1500);
 }
 
 async function createLine() {
-  const persona = personaInputEl.value.trim();
-  const description = lineDescriptionInputEl.value.trim();
+
+  const persona =
+    personaInputEl.value.trim();
+
+  const description =
+    lineDescriptionInputEl.value.trim();
 
   if (!persona || !description) {
-    alert("Vyplň postavu aj opis línie.");
+
+    alert("Vyplň všetky polia.");
+
     return;
   }
 
-  const id = "L" + Date.now();
+  const id =
+    "L" + Date.now();
 
   const line = {
     id,
@@ -492,16 +770,14 @@ async function createLine() {
     sublines: []
   };
 
-  if (syncOnline && firebaseAvailable && db) {
-    try {
-      await addLineOnline(line);
-    } catch (e) {
-      console.error(e);
-      alert("Nepodarilo sa vytvoriť líniu online.");
-      return;
-    }
+  if (syncOnline) {
+
+    await addLineOnline(line);
+
   } else {
+
     storyLines[id] = line;
+
     saveOffline();
   }
 
@@ -515,33 +791,44 @@ async function createLine() {
 }
 
 async function createSubline() {
+
   if (!currentLineId) return;
 
-  const title = sublineTitleInputEl.value.trim();
-  const description = sublineDescriptionInputEl.value.trim();
+  const title =
+    sublineTitleInputEl.value.trim();
+
+  const description =
+    sublineDescriptionInputEl.value.trim();
 
   if (!title) {
-    alert("Zadaj názov podlínie.");
+
+    alert("Zadaj názov.");
+
     return;
   }
 
   const subline = {
     id: "S" + Date.now(),
     title,
-    description
+    description,
+    author: currentUserName || ""
   };
 
-  if (syncOnline && firebaseAvailable && db) {
-    try {
-      await addSublineOnline(currentLineId, subline);
-    } catch (e) {
-      console.error(e);
-      alert("Nepodarilo sa uložiť podlíniu online.");
-      return;
-    }
+  if (syncOnline) {
+
+    await addSublineOnline(
+      currentLineId,
+      subline
+    );
+
   } else {
-    storyLines[currentLineId].sublines.push(subline);
+
+    storyLines[currentLineId]
+      .sublines
+      .push(subline);
+
     saveOffline();
+
     renderCurrentLine();
     renderOverview();
   }
@@ -551,124 +838,177 @@ async function createSubline() {
 }
 
 async function resetAll() {
+
   const sure = confirm(
-    "Začať odznova?\n\nVymažú sa všetky vytvorené línie, texty aj podlínie. Online údaje sa vymažú všetkým používateľom."
+    "Vymazať všetko?"
   );
 
   if (!sure) return;
 
-  resetBtn.disabled = true;
-  resetBtn.textContent = "Čistím...";
+  storyLines =
+    clone(defaultLines);
 
-  try {
-    storyLines = clone(defaultLines);
+  Object.values(storyLines)
+    .forEach(line => {
 
-    Object.values(storyLines).forEach(line => {
       line.entries = [];
       line.sublines = [];
     });
 
-    saveOffline();
+  saveOffline();
 
-    if (firebaseAvailable && db) {
-      await resetOnlineForEveryone();
-    }
+  if (syncOnline && db) {
 
-    currentLineId = null;
-
-    renderCurrentLine();
-    renderOverview();
-
-    statusMessageEl.textContent = "Všetko bolo vymazané.";
-  } catch (e) {
-    console.error(e);
-    alert("Reset zlyhal. Skontroluj Firebase pravidlá.");
-  } finally {
-    resetBtn.disabled = false;
-    resetBtn.textContent = "Začať odznova";
-
-    setTimeout(() => {
-      statusMessageEl.textContent = "";
-    }, 2000);
+    await resetOnlineForEveryone();
   }
+
+  currentLineId = null;
+
+  renderCurrentLine();
+  renderOverview();
 }
 
+// EXPORT
+
 function exportStories() {
+
   let content = "";
 
-  Object.values(storyLines).forEach(line => {
-    content += `=== ${line.name} ===\n`;
-    content += `Postava: ${line.persona}\n`;
-    content += `Opis: ${line.description}\n\n`;
+  Object.values(storyLines)
+    .forEach(line => {
 
-    content += "TEXT:\n";
+      content +=
+        `=== ${line.name} ===\n\n`;
 
-    if (!line.entries.length) {
-      content += "Bez textu.\n\n";
-    } else {
-      line.entries.forEach((entry, index) => {
-        content += `${index + 1}. ${entry}\n\n`;
+      line.entries.forEach(entry => {
+
+        content +=
+          `${entry.text}\n`;
+
+        content +=
+          `(${entry.author})\n\n`;
       });
-    }
 
-    content += "PODLÍNIE:\n";
+      line.sublines.forEach(sub => {
 
-    if (!line.sublines.length) {
-      content += "Bez podlínií.\n";
-    } else {
-      line.sublines.forEach((subline, index) => {
-        content += `${index + 1}. ${subline.title}\n`;
-        content += `${subline.description}\n\n`;
+        content +=
+          `→ ${sub.title}\n`;
+
+        content +=
+          `${sub.description}\n\n`;
       });
-    }
 
-    content += "\n-----------------\n\n";
-  });
+      content +=
+        "-------------------\n\n";
+    });
 
-  const blob = new Blob([content], {
-    type: "text/plain;charset=utf-8"
-  });
+  const blob =
+    new Blob([content], {
+      type: "text/plain"
+    });
 
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
+  const url =
+    URL.createObjectURL(blob);
+
+  const a =
+    document.createElement("a");
 
   a.href = url;
-  a.download = "liniovy_pribeh.txt";
+  a.download = "story.txt";
 
   document.body.appendChild(a);
+
   a.click();
+
   document.body.removeChild(a);
 
   URL.revokeObjectURL(url);
 }
 
-getLineBtn.addEventListener("click", () => {
-  currentLineId = randomLineId();
-  renderCurrentLine();
-  renderOverview();
-});
+// EVENTS
 
-changeLineBtn.addEventListener("click", () => {
-  currentLineId = randomLineId();
-  renderCurrentLine();
-  renderOverview();
-});
+userNameInputEl.addEventListener(
+  "input",
+  () => {
 
-addEntryBtn.addEventListener("click", addEntry);
-createLineBtn.addEventListener("click", createLine);
-createSublineBtn.addEventListener("click", createSubline);
+    saveUserName();
+    updateModeUI();
+  }
+);
 
-offlineModeBtn.addEventListener("click", setOfflineMode);
-onlineModeBtn.addEventListener("click", setOnlineMode);
+getLineBtn.addEventListener(
+  "click",
+  () => {
 
-resetBtn.addEventListener("click", resetAll);
-downloadBtn.addEventListener("click", exportStories);
+    currentLineId =
+      randomLineId();
+
+    renderCurrentLine();
+    renderOverview();
+  }
+);
+
+changeLineBtn.addEventListener(
+  "click",
+  () => {
+
+    currentLineId =
+      randomLineId();
+
+    renderCurrentLine();
+    renderOverview();
+  }
+);
+
+addEntryBtn.addEventListener(
+  "click",
+  addEntry
+);
+
+createLineBtn.addEventListener(
+  "click",
+  createLine
+);
+
+createSublineBtn.addEventListener(
+  "click",
+  createSubline
+);
+
+offlineModeBtn.addEventListener(
+  "click",
+  setOfflineMode
+);
+
+onlineModeBtn.addEventListener(
+  "click",
+  setOnlineMode
+);
+
+resetBtn.addEventListener(
+  "click",
+  resetAll
+);
+
+downloadBtn.addEventListener(
+  "click",
+  exportStories
+);
+
+// INIT
 
 function init() {
+
+  loadUserName();
   loadOffline();
+
   renderOverview();
   renderCurrentLine();
+
   setOfflineMode();
 }
 
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener(
+  "DOMContentLoaded",
+  init
+);
