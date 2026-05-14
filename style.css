@@ -3,157 +3,74 @@ body {
   padding: 0;
   background: #f5f5f7;
   color: #1d1d1f;
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    Arial,
-    sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Arial, sans-serif;
 }
 
 .container {
-  max-width: 1000px;
+  max-width: 1040px;
   margin: auto;
   padding: 20px;
 }
 
 .app-header {
   text-align: center;
-  padding: 30px 10px 10px;
+  padding: 34px 12px 14px;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 42px;
 }
 
 .subtitle {
   color: #6e6e73;
+  margin-top: 8px;
 }
 
 .card {
-  background: white;
-  border-radius: 24px;
-  padding: 24px;
-  margin-bottom: 20px;
-  box-shadow:
-    0 10px 30px rgba(0,0,0,0.08);
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 28px;
+  margin-bottom: 22px;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.08);
 }
 
-.section-title-row,
-.line-header {
+.toolbar,
+.overview-header,
+.story-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 12px;
+  gap: 18px;
+  align-items: flex-start;
 }
 
-.two-columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-.mode-buttons,
+.toolbar-actions,
 .overview-actions {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
-.btn {
-  border: none;
-  border-radius: 999px;
-  padding: 10px 18px;
-  cursor: pointer;
-  font-size: 14px;
-  font-family: inherit;
+.top-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 28px;
 }
 
-.btn.primary {
-  background: #0071e3;
-  color: white;
+h2 {
+  margin-top: 0;
 }
 
-.btn.secondary {
-  background: #e5e5ea;
-}
-
-.btn.danger {
-  background: #ffdddd;
-  color: #b00020;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.mode-btn.active-mode {
-  background: #34c759;
-  color: white;
-}
-
-.entries,
-.sublines-list {
-  background: #f0f0f3;
-  border-radius: 16px;
-  padding: 12px;
-  margin-bottom: 14px;
-}
-
-.entries.empty,
-.sublines-list.empty {
-  text-align: center;
+.label {
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.08em;
   color: #6e6e73;
-}
-
-.entry,
-.subline-card {
-  background: white;
-  border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 10px;
-}
-
-.entry {
-  border-left: 4px solid #0071e3;
-}
-
-.subline-card {
-  border-left: 4px solid #34c759;
-}
-
-textarea,
-.field input {
-  width: 100%;
-  box-sizing: border-box;
-  border-radius: 12px;
-  border: 1px solid #d2d2d7;
-  padding: 12px;
-  font-size: 15px;
-  font-family: inherit;
-}
-
-.entry-form,
-.new-line-form,
-.subline-form {
-  display: grid;
-  gap: 12px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns:
-    repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
-}
-
-.overview-card {
-  background: #fafafa;
-  border-radius: 16px;
-  padding: 14px;
+  margin: 0 0 6px;
 }
 
 .muted {
   color: #6e6e73;
-}
-
-.small {
-  font-size: 13px;
 }
 
 .status {
@@ -161,24 +78,217 @@ textarea,
   font-size: 14px;
 }
 
-@media (max-width: 720px) {
+.btn {
+  border: none;
+  border-radius: 999px;
+  padding: 11px 18px;
+  cursor: pointer;
+  font-size: 15px;
+  font-family: inherit;
+  margin-top: 8px;
+}
 
-  .two-columns {
-    grid-template-columns: 1fr;
+.btn.primary {
+  background: #0071e3;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(0,113,227,0.28);
+}
+
+.btn.secondary,
+.mode-btn {
+  background: #e5e5ea;
+  color: #1d1d1f;
+}
+
+.btn.danger {
+  background: #ffdfe1;
+  color: #b00020;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.mode-btn.active-mode {
+  background: #34c759;
+  color: #fff;
+}
+
+.create-box,
+.write-box {
+  background: #f8f8fa;
+  border-radius: 22px;
+  padding: 18px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.field label,
+.write-box label {
+  font-size: 13px;
+  color: #6e6e73;
+}
+
+input,
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d2d2d7;
+  border-radius: 14px;
+  padding: 12px;
+  font-size: 15px;
+  font-family: inherit;
+  background: #fff;
+}
+
+textarea {
+  resize: vertical;
+  margin-top: 8px;
+}
+
+.story-card {
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
+}
+
+.story-text {
+  margin: 22px 0;
+  padding: 26px;
+  background: #fff;
+  border-radius: 22px;
+  border: 1px solid #ececf0;
+  line-height: 1.75;
+  font-size: 18px;
+}
+
+.story-text.empty {
+  text-align: center;
+  color: #6e6e73;
+  background: #f0f0f3;
+}
+
+.story-paragraph {
+  margin: 0 0 18px;
+  text-indent: 1.5em;
+}
+
+.story-paragraph.first {
+  text-indent: 0;
+}
+
+.subline-form {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.sublines-list {
+  margin-top: 18px;
+  background: #f0f0f3;
+  border-radius: 18px;
+  padding: 14px;
+}
+
+.sublines-list.empty {
+  text-align: center;
+  color: #6e6e73;
+}
+
+.subline-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 10px;
+  border-left: 4px solid #34c759;
+}
+
+.subline-card h4 {
+  margin: 0 0 5px;
+}
+
+.subline-card p {
+  margin: 0;
+  color: #6e6e73;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.overview-card {
+  text-align: left;
+  background: #fafafa;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  padding: 16px;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+}
+
+.overview-card:hover {
+  background: #f2f2f5;
+}
+
+.overview-card.selected {
+  border-color: #0071e3;
+  background: #eef6ff;
+}
+
+.overview-card h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.overview-card p {
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+@media (max-width: 760px) {
+  .container {
+    padding: 12px;
   }
 
-  .section-title-row,
-  .line-header {
+  .card {
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  .app-header h1 {
+    font-size: 34px;
+  }
+
+  .toolbar,
+  .overview-header,
+  .story-header {
     flex-direction: column;
-    align-items: flex-start;
   }
 
-  .mode-buttons,
+  .toolbar-actions,
   .overview-actions {
     width: 100%;
   }
 
+  .top-grid,
+  .subline-form {
+    grid-template-columns: 1fr;
+  }
+
   .btn {
     width: 100%;
+  }
+
+  .story-text {
+    padding: 18px;
+    font-size: 16px;
   }
 }
